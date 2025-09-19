@@ -46,6 +46,9 @@ class Map:
         return x_in_bounds and y_in_bounds
     
     def GetNeighbours(self, center_point: Point2D) -> list[Point2D]:
+        """
+        Get list of neighboring points (without actually visiting them)
+        """
         points: list[Point2D] = []
         x_center, y_center = center_point
         for x in range(-1,2):
@@ -145,38 +148,47 @@ class DFS:
     def CalculatePath(self, start: Point2D, end: Point2D) -> Path:
         assert self._map is not None, "SetMap must be called first"
         self._map.ResetVisitedCount()
-        
         start_time = time.perf_counter_ns()
 
+        res = self._CalculatePath(start, end)
+        print(f"{res=}")
 
         stop_time = time.perf_counter_ns()
-
         self._elapsed_time_ns = stop_time - start_time
         self._visited_node_count = self._map.GetVisitedCount()
-        return [(0,0), (5,5), (6,6), (1,9)]
+        return res
 
     def GetStats(self) -> (ElapsedTime_ns, VisitedNodeCount):
         return self._elapsed_time_ns, self._visited_node_count
 
-    def _visit(point: Point2D)
-
-class BFS:
-
-    name = "Breadth First Search"
-    _map: Optional[Map]
-
-    def __init__(self) -> None:
-        self._map = None
-
-    def SetMap(self, m: Map) -> None:
-        self._map = m
-
-    def CalculatePath(self, start: Point2D, end: Point2D) -> Path:
-        assert self._map is not None, "SetMap must be called first"
-        return [(0,0), (1,0), (2,0), (3,0)]
-
-    def GetStats(self) -> (ElapsedTime_ns, VisitedNodeCount):
-        return 300.0, 21
+    def _CalculatePath(self, 
+                       point: Point2D,
+                       end_point: Point2D,
+                       path: Optional[list[Point2D]] = None,
+                       visited: Optional[set[Point2D]] = None) -> Optional[Path]:
+        """
+        Find (any) path, not guaranteed to be optimal (and it most probably won't be)
+        """
+        if visited is None:
+            visited = set()
+        if path is None:
+            path = list()
+        # We don't need to know cost in this case, but we still want to track
+        # how many nodes we've visited
+        _ = self._map.Visit(point) 
+        # we keep visited nodes in separate list and set,
+        # as membership check is faster for set than for list,
+        # but set is not ordered
+        visited.add(point)
+        path.append(point)
+        if point == end_point:
+            return path 
+        for neighbor in self._map.GetNeighbours(point):
+            if neighbor not in visited:
+                res = self._CalculatePath(neighbor, end_point, path, visited)
+                if res:
+                    return res
+        return None
 
 #
 # Calculate paths using various methods and visualize them
@@ -184,13 +196,13 @@ class BFS:
 
 def main():
     # Define the map and start/stop points
-    m = Map(15, 10)
+    m = Map(15,10)
     m.Randomize()
-    starting_point: Point2D = (0,0)
-    end_point: Point2D = (9,9)
+    starting_point: Point2D = (0,9)
+    end_point: Point2D = (14,1)
 
     path_finder_classes: list[PathFinder] = {
-        DFS, BFS
+        DFS,
     }
 
     v = Visualizer()
@@ -201,13 +213,8 @@ def main():
         path_finder.SetMap(m)
         path = path_finder.CalculatePath(starting_point, end_point)
         elapsed_time, visited_nodes = path_finder.GetStats()
-        print(f"{path_finder.name:22}: took {elapsed_time} ns, visited {visited_nodes} nodes")
+        print(f"{path_finder.name:22}: took {elapsed_time/1e6} ms, visited {visited_nodes} nodes")
         v.DrawPath(path)
-    #
-    p = (1,9)
-#    print(f"{m.IsPointValid(p)=}")
-#    print(f"{m.GetCost(p)=}") 
-    print(f"{m.GetNeighbours(p)}")
 
     plt.show()
 
