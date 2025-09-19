@@ -22,25 +22,40 @@ class Map:
     """
     2D map consisting of cells with given cost
     """
+    # TODO fix x, y vs rows, cols
     array: np.array
+    _visited_nodes: int
 
     def __init__(self, width: int, height: int) -> None:
         assert width > 0
         assert height > 0
         self.array = np.zeros((width, height), dtype=np.float64)
+        self._visited_nodes = 0
 
     def Randomize(self, low: float = 0.0, high: float = 1.0) -> None:
         self.array = np.random.uniform(low, high, self.array.shape)
 
-    def GetCost(self, point: Point2D) -> float:
-        return self.array[point]
-
     def IsPointValid(self, point: Point2D) -> bool:
-        ...
-
+        x, y = point
+        x_max, y_max = self.array.shape
+        x_in_bounds = (0 <= x < x_max) 
+        y_in_bounds = (0 <= y < y_max) 
+        return x_in_bounds and y_in_bounds
+    
     def GetNeighbours(self) -> list[Point2D]:
         ...
+    
+    def ResetVisitedCount(self) -> None:
+        self._visited_nodes = 0
 
+    def GetVisitedCount(self) -> int:
+        return self._visited_nodes
+
+    def GetCost(self, point: Point2D) -> float:
+        if not self.IsPointValid(point):
+            raise ValueError("Point out of bounds")
+        self._visited_nodes += 1
+        return self.array[point]
 
 
 class PathFinder(Protocol):
@@ -158,7 +173,11 @@ def main():
         elapsed_time, visited_nodes = path_finder.GetStats()
         print(f"{path_finder.name:22}: took {elapsed_time} ns, visited {visited_nodes} nodes")
         v.DrawPath(path)
-    
+    #
+    p = (9,1)
+    print(f"{m.IsPointValid(p)=}")
+    print(f"{m.GetCost(p)=}") 
+
     plt.show()
 
 if __name__ == "__main__":
