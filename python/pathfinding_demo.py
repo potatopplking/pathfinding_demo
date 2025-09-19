@@ -22,14 +22,16 @@ class Map:
     """
     2D map consisting of cells with given cost
     """
-    # TODO fix x, y vs rows, cols
+    # array not defined as private, as plotting utilities work with it directly
     array: np.array
     _visited_nodes: int
 
     def __init__(self, width: int, height: int) -> None:
         assert width > 0
         assert height > 0
-        self.array = np.zeros((width, height), dtype=np.float64)
+        rows = height
+        cols = width
+        self.array = np.zeros((rows, cols), dtype=np.float64)
         self._visited_nodes = 0
 
     def Randomize(self, low: float = 0.0, high: float = 1.0) -> None:
@@ -37,7 +39,7 @@ class Map:
 
     def IsPointValid(self, point: Point2D) -> bool:
         x, y = point
-        x_max, y_max = self.array.shape
+        y_max, x_max = self.array.shape
         x_in_bounds = (0 <= x < x_max) 
         y_in_bounds = (0 <= y < y_max) 
         return x_in_bounds and y_in_bounds
@@ -55,7 +57,9 @@ class Map:
         if not self.IsPointValid(point):
             raise ValueError("Point out of bounds")
         self._visited_nodes += 1
-        return self.array[point]
+        x, y = point
+        row, col = y, x
+        return self.array[(row, col)]
 
 
 class PathFinder(Protocol):
@@ -154,7 +158,7 @@ class BFS:
 
 def main():
     # Define the map and start/stop points
-    m = Map(10, 10)
+    m = Map(15, 10)
     m.Randomize()
     starting_point: Point2D = (0,0)
     end_point: Point2D = (9,9)
