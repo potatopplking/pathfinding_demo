@@ -117,6 +117,7 @@ class Visualizer:
         self._axes.plot(xs, ys, 'o-', color=color, label=label)
         self._axes.plot(xs[0],  ys[0],  'o', color='lime',  markersize=8)  # starting point
         self._axes.plot(xs[-1], ys[-1], 'o', color='magenta', markersize=8)  # end point
+        self._axes.legend()
 
 
 #
@@ -395,10 +396,10 @@ class A_star(PathFinderBase):
 
 def main():
     # Define the map and start/stop points
-    m = Map(15,10)
+    m = Map(30,20)
     m.Randomize()
-    starting_point: Point2D = Point2D((1,1))
-    end_point: Point2D = Point2D((5,5))
+    starting_point: Point2D = Point2D((29,19))
+    end_point: Point2D = Point2D((1,1))
 
     path_finder_classes: list[type[PathFinderBase]] = [
         DFS,
@@ -419,7 +420,7 @@ def main():
         if path is not None: 
             cost = m.GetPathCost(path)
             print(f"{path_finder.name:24}: took {elapsed_time/1e6:.3f} ms, visited {visited_nodes} nodes, cost {cost:.2f}")
-            v.DrawPath(path)
+            v.DrawPath(path, label=path_finder.name)
         else:
             print(f"{path_finder.name}: No path found")
 

@@ -14,6 +14,7 @@
         - [x] GBFS
         - [x] A*
     - [x] performance measurement: time/visited nodes
+    - [ ] finalize the script and copy back to the jupyter notebook
     - [ ] finish text on the page
     - [x] create a dedicated python script
 - [ ] C++
