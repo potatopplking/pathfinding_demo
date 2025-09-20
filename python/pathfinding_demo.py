@@ -8,6 +8,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import random
 from typing import Optional, NewType, Any
 from abc import ABC, abstractmethod
 from queue import Queue, PriorityQueue
@@ -84,6 +85,33 @@ class Map:
             raise ValueError("Point out of bounds")
         self._visited_nodes += 1
         return self.GetPointCost(point)
+
+    def CreateMaze(self, wall_probability: float = 0.3) -> None:
+        """
+        Note: generated with Grok
+        Generate a simple maze on the map.
+        - Borders are set as walls (cost 1000).
+        - Internal cells are randomly set to 1 (path) or 1000 (wall) based on wall_probability.
+
+        Args:
+            wall_probability (float): Probability (0-1) that an internal cell becomes a wall.
+        """
+        rows, cols = self.array.shape
+
+        # Set borders to walls (cost 1000)
+        self.array[0, :] = 1000  # Top row
+        self.array[-1, :] = 1000  # Bottom row
+        self.array[:, 0] = 1000  # Left column
+        self.array[:, -1] = 1000  # Right column
+
+        # Set internal cells randomly
+        for y in range(1, rows - 1):  # Skip borders
+            for x in range(1, cols - 1):
+                if random.random() < wall_probability:
+                    self.array[y, x] = 1000  # Wall
+                else:
+                    self.array[y, x] = 1  # Normal tile
+
 
 #
 # Drawing utilities
@@ -397,7 +425,8 @@ class A_star(PathFinderBase):
 def main():
     # Define the map and start/stop points
     m = Map(30,20)
-    m.Randomize()
+    #m.Randomize()
+    m.CreateMaze()
     starting_point: Point2D = Point2D((29,19))
     end_point: Point2D = Point2D((1,1))
 
