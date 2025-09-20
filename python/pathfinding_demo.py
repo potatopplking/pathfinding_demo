@@ -8,7 +8,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from typing import Optional
+from typing import Optional, NewType
 from abc import ABC, abstractmethod
 from queue import Queue
 
@@ -16,7 +16,8 @@ from queue import Queue
 # Type and interfaces definition
 #
 
-type Point2D = tuple[int, int] # tuple(x, y)
+Point2D = NewType("Point2D", tuple[int, int])
+# type Point2D = tuple[int, int] # tuple(x, y)
 type Path = list[Point2D]
 
 class Map:
@@ -55,7 +56,7 @@ class Map:
             for y in range(-1,2):
                 if x == 0 and y == 0:
                     continue
-                p = (x + x_center, y + y_center)
+                p = Point2D((x + x_center, y + y_center))
                 if self.IsPointValid(p):
                     points.append(p)
         return points
@@ -253,8 +254,8 @@ def main():
     # Define the map and start/stop points
     m = Map(15,10)
     m.Randomize()
-    starting_point: Point2D = (14,1)
-    end_point: Point2D = (0,9)
+    starting_point: Point2D = Point2D((14,8))
+    end_point: Point2D = Point2D((1,1))
 
     path_finder_classes: list[type[PathFinderBase]] = [
         DFS,
