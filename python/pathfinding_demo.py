@@ -10,6 +10,7 @@ import numpy as np
 import time
 from typing import Optional
 from abc import ABC, abstractmethod
+from queue import Queue
 
 #
 # Type and interfaces definition
@@ -164,6 +165,11 @@ class PathFinderBase(ABC):
 
 
 class DFS(PathFinderBase):
+    """
+    Recursive depth-first search; returns first path it finds
+    Not very efficient performance and memory-wise,
+    also returns very sub-optimal paths
+    """
 
     name = "Depth First Search"
 
@@ -195,6 +201,50 @@ class DFS(PathFinderBase):
                     return res
         return None
 
+
+class BFS(PathFinderBase):
+    """
+    Iterative breadh-first search. Finds optimal path and creates flow-field,
+    so it would be good match for static maps with lots of agents with one
+    destination.
+    Compared to A*, this is more computationally expensive if we only want
+    to find path for one agent.
+    """
+
+    name = "Breadth First Search"
+    # flow field and distance map
+    _came_from: dict[Point2D, Point2D]
+    _distance: dict[Point2D, float]
+
+    def _CalculatePath(self, start_point: Point2D, end_point: Point2D) -> Optional[Path]:
+        frontier: Queue[Point2D] = Queue()
+        frontier.put(end_point) # we start the computation from the end point
+        self._came_from: dict[Point2D, Optional[Point2D]] = { end_point: None }
+        self._distance: dict[Point2D, float] = { end_point: 0.0 }
+
+        # build "flow map"
+        while not frontier.empty():
+            current = frontier.get()
+            for next_point in self._map.GetNeighbours(current):
+                if next_point not in self._came_from:
+                    frontier.put(next_point)
+                    #self._distance[next_point] = self._distance[current] + 1.0
+                    self._distance[next_point] = self._distance[current] + self._map.Visit(next_point)
+                    self._came_from[next_point] = current
+        # find actual path
+        path: Path = []
+        current = start_point
+        path.append(current)
+        while self._came_from[current] is not None:
+            current = self._came_from[current]
+            path.append(current)
+        return path
+                
+
+class A_star(PathFinderBase):
+
+    name = "A*"
+
 #
 # Calculate paths using various methods and visualize them
 #
@@ -208,6 +258,7 @@ def main():
 
     path_finder_classes: list[type[PathFinderBase]] = [
         DFS,
+        BFS,
     ]
 
     v = Visualizer()
