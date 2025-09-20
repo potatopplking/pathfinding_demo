@@ -205,8 +205,9 @@ class DFS(PathFinderBase):
 
 class BFS(PathFinderBase):
     """
-    Iterative breadh-first search. Finds optimal path and creates flow-field,
-    so it would be good match for static maps with lots of agents with one
+    Iterative breadth-first search
+    Finds optimal path and creates flow-field, does not take the node cost into account.
+    This would be good match for static maps with lots of agents with one
     destination.
     Compared to A*, this is more computationally expensive if we only want
     to find path for one agent.
@@ -224,14 +225,19 @@ class BFS(PathFinderBase):
         self._distance: dict[Point2D, float] = { end_point: 0.0 }
 
         # build "flow map"
-        while not frontier.empty():
+        early_exit = False
+        while not frontier.empty() and not early_exit:
             current = frontier.get()
             for next_point in self._map.GetNeighbours(current):
                 if next_point not in self._came_from:
                     frontier.put(next_point)
-                    #self._distance[next_point] = self._distance[current] + 1.0
-                    self._distance[next_point] = self._distance[current] + self._map.Visit(next_point)
+                    self._distance[next_point] = self._distance[current] + 1.0
+                    _ = self._map.Visit(next_point) # visit only to track visited node count
                     self._came_from[next_point] = current
+                    if next_point == start_point:
+                        # early exit - if you want to build the whole flow field, remove this
+                        early_exit = True
+                        break
         # find actual path
         path: Path = []
         current = start_point
@@ -240,12 +246,24 @@ class BFS(PathFinderBase):
             current = self._came_from[current]
             path.append(current)
         return path
-                
+
+
+class Dijkstra(PathFinderBase):
+    """
+    Like BFS, but takes into account cost of nodes
+    """
+
+    name = "Dijkstra"
+
+    def _CalculatePath(self, start_point: Point2D, end_point: Point2D) -> Optional[Path]:
+        ...
 
 class A_star(PathFinderBase):
 
     name = "A*"
 
+    def _CalculatePath(self, start_point: Point2D, end_point: Point2D) -> Optional[Path]:
+        ...
 #
 # Calculate paths using various methods and visualize them
 #
@@ -254,12 +272,14 @@ def main():
     # Define the map and start/stop points
     m = Map(15,10)
     m.Randomize()
-    starting_point: Point2D = Point2D((14,8))
-    end_point: Point2D = Point2D((1,1))
+    starting_point: Point2D = Point2D((1,1))
+    end_point: Point2D = Point2D((5,5))
 
     path_finder_classes: list[type[PathFinderBase]] = [
         DFS,
         BFS,
+        Dijkstra,
+        A_star
     ]
 
     v = Visualizer()
