@@ -18,7 +18,8 @@
     - [ ] finish text on the page
     - [x] create a dedicated python script
 - [ ] C++
-    - [ ] re-use 2D game engine
+    - [x] re-use 2D game engine
+    - [ ] add map and tiles with cost
     - [ ] add mouse-click movement (direct, no pathfinding, player always selected)
     - [ ] add "terrain tiles" with different costs
     - [ ] add different sprites
