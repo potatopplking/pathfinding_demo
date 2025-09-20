@@ -118,6 +118,21 @@ class Visualizer:
         self._axes.plot(xs[0],  ys[0],  'o', color='lime',  markersize=8)  # starting point
         self._axes.plot(xs[-1], ys[-1], 'o', color='magenta', markersize=8)  # end point
 
+
+#
+# Utilities and helper classes
+#
+
+@dataclass(order=True)
+class PrioritizedItem:
+    """
+    Helper class for wrapping items in the PriorityQueue,
+    so that it can compare items with priority
+    """
+    item: Any = field(compare=False)
+    priority: float
+
+
 #
 # Pathfinding implementations
 #
@@ -257,24 +272,14 @@ class DijkstraAlgorithm(PathFinderBase):
 
     name = "Dijkstra's Algorithm"
 
-    @dataclass(order=True)
-    class PrioritizedItem:
-        """
-        Helper class for wrapping items in the PriorityQueue,
-        so that it can compare items with priority
-        """
-        item: Any = field(compare=False)
-        priority: float
-
     def _CalculatePath(self, start_point: Point2D, end_point: Point2D) -> Optional[Path]:
-        frontier: PriorityQueue[self.PrioritizedItem] = PriorityQueue()
+        frontier: PriorityQueue[PrioritizedItem] = PriorityQueue()
         came_from: dict[Point2D, Optional[Point2D]] = {end_point: None} # we start from end node
         cost_so_far: dict[Point2D, float] = {end_point: 0.0}
 
-        frontier.put(self.PrioritizedItem(end_point, 0.0))
+        frontier.put(PrioritizedItem(end_point, 0.0))
         while not frontier.empty():
             current = frontier.get().item
-            #print(f"{current=}")
             if current == start_point:
                 # early exit - remove if you want to build the whole flow map
                 break
@@ -283,7 +288,7 @@ class DijkstraAlgorithm(PathFinderBase):
                 if next_point not in cost_so_far or new_cost < cost_so_far[next_point]:
                     cost_so_far[next_point] = new_cost
                     priority = new_cost
-                    frontier.put(self.PrioritizedItem(next_point, priority))
+                    frontier.put(PrioritizedItem(next_point, priority))
                     came_from[next_point] = current
         # build the actual path
         path: Path = []
@@ -294,6 +299,50 @@ class DijkstraAlgorithm(PathFinderBase):
             path.append(current)
         return path
         
+
+class GBFS(PathFinderBase):
+    """
+    Like Dijsktra's Algorithm, but uses some heuristic
+    as a priority for the PriorityQueue
+    Also doesn't care about the cost of the node
+    """
+    
+    name = "Greedy Best First Search"
+
+    @staticmethod
+    def heuristic(a: Point2D, b: Point2D) -> float:
+        # for now we use Manhattan distance, although
+        # it is probably not entirely correct, given that
+        # we can also move diagonally in the grid
+        # TODO a problem for future me
+        x_a, y_a = a
+        x_b, y_b = b
+        return abs(x_a - x_b) + abs(y_a - y_b)
+
+    def _CalculatePath(self, start_point: Point2D, end_point: Point2D) -> Optional[Path]:
+        frontier: PriorityQueue[PrioritizedItem] = PriorityQueue()
+        came_from: dict[Point2D, Optional[Point2D]] = {end_point: None}
+        
+        frontier.put(PrioritizedItem(end_point, 0.0)) # we start from the end
+        # create the flow field
+        while not frontier.empty():
+            current = frontier.get().item
+            if current == start_point:
+                # early exit
+                break
+            for next_point in self._map.GetNeighbours(current):
+                if next_point not in came_from:
+                    priority = self.heuristic(start_point, next_point)
+                    frontier.put(PrioritizedItem(next_point, priority))
+                    _ = self._map.Visit(next_point) # visit only to track visited node count
+                    came_from[next_point] = current
+        # create the actual path
+        path: Path = [start_point]
+        current = start_point
+        while came_from[current] is not None:
+            current = came_from[current]
+            path.append(current)
+        return path
 
 
 class A_star(PathFinderBase):
@@ -319,7 +368,8 @@ def main():
         DFS,
         BFS,
         DijkstraAlgorithm,
-        A_star
+        GBFS,
+        A_star,
     ]
 
     v = Visualizer()
