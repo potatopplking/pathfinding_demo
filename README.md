@@ -1,4 +1,4 @@
-# LPP pathfinding task
+# Pathfinding demo
 
 ## TODO
 
@@ -7,11 +7,12 @@
     - [x] drawing utility
     - [x] interface for pathfinding
     - [x] research methods
-    - [ ] implement methods
+    - [x] implement methods
         - [x] DFS
         - [x] BFS
         - [x] Dijsktra
-        - [ ] A*
+        - [x] GBFS
+        - [x] A*
     - [x] performance measurement: time/visited nodes
     - [ ] finish text on the page
     - [x] create a dedicated python script

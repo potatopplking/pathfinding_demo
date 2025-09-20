@@ -268,6 +268,7 @@ class DijkstraAlgorithm(PathFinderBase):
     """
     Dijsktra's algorithm (Uniform Cost Search)
     Like BFS, but takes into account cost of nodes
+    (priority for the search being the distance from the start)
     """
 
     name = "Dijkstra's Algorithm"
@@ -302,9 +303,8 @@ class DijkstraAlgorithm(PathFinderBase):
 
 class GBFS(PathFinderBase):
     """
-    Like Dijsktra's Algorithm, but uses some heuristic
-    as a priority for the PriorityQueue
-    Also doesn't care about the cost of the node
+    Like Dijsktra's Algorithm, but uses some heuristic as a priority 
+    instead of the cost of the node
     """
     
     name = "Greedy Best First Search"
@@ -346,12 +346,48 @@ class GBFS(PathFinderBase):
 
 
 class A_star(PathFinderBase):
+    """
+    Combines Dijsktra's Algorithm and GBFS:
+    priority is the sum of the heuristic and distance from the start
+    """
 
     name = "A*"
 
-    def _CalculatePath(self, start_point: Point2D, end_point: Point2D) -> Optional[Path]:
-        ...
+    @staticmethod
+    def heuristic(a: Point2D, b: Point2D) -> float:
+        # for now we use Manhattan distance, although
+        # it is probably not entirely correct, given that
+        # we can also move diagonally in the grid
+        # TODO a problem for future me
+        x_a, y_a = a
+        x_b, y_b = b
+        return abs(x_a - x_b) + abs(y_a - y_b)
 
+    def _CalculatePath(self, start_point: Point2D, end_point: Point2D) -> Optional[Path]:
+        frontier: PriorityQueue[PrioritizedItem] = PriorityQueue()
+        came_from: dict[Point2D, Optional[Point2D]] = { end_point: None }
+        cost_so_far: dict[Point2D, float] = { end_point: 0.0 }
+
+        frontier.put(PrioritizedItem(end_point, 0.0))
+        while not frontier.empty():
+            current = frontier.get().item
+            if current == start_point:
+                # early exit
+                break
+            for next_point in self._map.GetNeighbours(current):
+                new_cost = cost_so_far[current] + self._map.Visit(next_point)
+                if next_point not in cost_so_far or new_cost < cost_so_far[next_point]:
+                    cost_so_far[next_point] = new_cost
+                    priority = new_cost + self.heuristic(start_point, next_point)
+                    frontier.put(PrioritizedItem(next_point, priority))
+                    came_from[next_point] = current
+        # create the actual path
+        path: Path = [start_point]
+        current = start_point
+        while came_from[current] is not None:
+            current = came_from[current]
+            path.append(current)
+        return path
 
 #
 # Calculate paths using various methods and visualize them
@@ -382,7 +418,7 @@ def main():
         elapsed_time, visited_nodes = path_finder.GetStats()
         if path is not None: 
             cost = m.GetPathCost(path)
-            print(f"{path_finder.name:22}: took {elapsed_time/1e6:.3f} ms, visited {visited_nodes} nodes, cost {cost:.2f}")
+            print(f"{path_finder.name:24}: took {elapsed_time/1e6:.3f} ms, visited {visited_nodes} nodes, cost {cost:.2f}")
             v.DrawPath(path)
         else:
             print(f"{path_finder.name}: No path found")
