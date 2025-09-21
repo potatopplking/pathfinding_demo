@@ -265,9 +265,9 @@ class BFS(PathFinderBase):
 
     def _CalculatePath(self, start_point: Point2D, end_point: Point2D) -> Optional[Path]:
         frontier: Queue[Point2D] = Queue()
-        frontier.put(end_point) # we start the computation from the end point
-        self._came_from: dict[Point2D, Optional[Point2D]] = { end_point: None }
-        self._distance: dict[Point2D, float] = { end_point: 0.0 }
+        frontier.put(start_point)
+        self._came_from: dict[Point2D, Optional[Point2D]] = { start_point: None }
+        self._distance: dict[Point2D, float] = { start_point: 0.0 }
 
         # build flow field
         early_exit = False
@@ -279,17 +279,18 @@ class BFS(PathFinderBase):
                     self._distance[next_point] = self._distance[current] + 1.0
                     _ = self._map.Visit(next_point) # visit only to track visited node count
                     self._came_from[next_point] = current
-                    if next_point == start_point:
+                    if next_point == end_point:
                         # early exit - if you want to build the whole flow field, remove this
                         early_exit = True
                         break
         # find actual path
         path: Path = []
-        current = start_point
+        current = end_point
         path.append(current)
         while self._came_from[current] is not None:
             current = self._came_from[current]
             path.append(current)
+        path.reverse()
         return path
 
 
@@ -304,13 +305,13 @@ class DijkstraAlgorithm(PathFinderBase):
 
     def _CalculatePath(self, start_point: Point2D, end_point: Point2D) -> Optional[Path]:
         frontier: PriorityQueue[PrioritizedItem] = PriorityQueue()
-        came_from: dict[Point2D, Optional[Point2D]] = {end_point: None} # we start from end node
-        cost_so_far: dict[Point2D, float] = {end_point: 0.0}
+        came_from: dict[Point2D, Optional[Point2D]] = {start_point: None}
+        cost_so_far: dict[Point2D, float] = {start_point: 0.0}
 
-        frontier.put(PrioritizedItem(end_point, 0.0))
+        frontier.put(PrioritizedItem(start_point, 0.0))
         while not frontier.empty():
             current = frontier.get().item
-            if current == start_point:
+            if current == end_point:
                 # early exit - remove if you want to build the whole flow map
                 break
             for next_point in self._map.GetNeighbours(current):
@@ -322,11 +323,12 @@ class DijkstraAlgorithm(PathFinderBase):
                     came_from[next_point] = current
         # build the actual path
         path: Path = []
-        current = start_point
+        current = end_point
         path.append(current)
         while came_from[current] is not None:
             current = came_from[current]
             path.append(current)
+        path.reverse()
         return path
         
 
@@ -350,27 +352,27 @@ class GBFS(PathFinderBase):
 
     def _CalculatePath(self, start_point: Point2D, end_point: Point2D) -> Optional[Path]:
         frontier: PriorityQueue[PrioritizedItem] = PriorityQueue()
-        came_from: dict[Point2D, Optional[Point2D]] = {end_point: None}
+        came_from: dict[Point2D, Optional[Point2D]] = {start_point: None}
         
-        frontier.put(PrioritizedItem(end_point, 0.0)) # we start from the end
+        frontier.put(PrioritizedItem(start_point, 0.0))
         # create the flow field
         while not frontier.empty():
             current = frontier.get().item
-            if current == start_point:
+            if current == end_point:
                 # early exit
                 break
             for next_point in self._map.GetNeighbours(current):
                 if next_point not in came_from:
-                    priority = self.heuristic(start_point, next_point)
+                    priority = self.heuristic(end_point, next_point)
                     frontier.put(PrioritizedItem(next_point, priority))
                     _ = self._map.Visit(next_point) # visit only to track visited node count
                     came_from[next_point] = current
         # create the actual path
-        path: Path = [start_point]
-        current = start_point
+        path: Path = [end_point]
         while came_from[current] is not None:
             current = came_from[current]
             path.append(current)
+        path.reverse()
         return path
 
 
@@ -394,28 +396,29 @@ class A_star(PathFinderBase):
 
     def _CalculatePath(self, start_point: Point2D, end_point: Point2D) -> Optional[Path]:
         frontier: PriorityQueue[PrioritizedItem] = PriorityQueue()
-        came_from: dict[Point2D, Optional[Point2D]] = { end_point: None }
-        cost_so_far: dict[Point2D, float] = { end_point: 0.0 }
+        came_from: dict[Point2D, Optional[Point2D]] = { start_point: None }
+        cost_so_far: dict[Point2D, float] = { start_point: 0.0 }
 
-        frontier.put(PrioritizedItem(end_point, 0.0))
+        frontier.put(PrioritizedItem(start_point, 0.0))
         while not frontier.empty():
             current = frontier.get().item
-            if current == start_point:
+            if current == end_point:
                 # early exit
                 break
             for next_point in self._map.GetNeighbours(current):
                 new_cost = cost_so_far[current] + self._map.Visit(next_point)
                 if next_point not in cost_so_far or new_cost < cost_so_far[next_point]:
                     cost_so_far[next_point] = new_cost
-                    priority = new_cost + self.heuristic(start_point, next_point)
+                    priority = new_cost + self.heuristic(end_point, next_point)
                     frontier.put(PrioritizedItem(next_point, priority))
                     came_from[next_point] = current
         # create the actual path
-        path: Path = [start_point]
-        current = start_point
+        path: Path = [end_point]
+        current = end_point
         while came_from[current] is not None:
             current = came_from[current]
             path.append(current)
+        path.reverse()
         return path
 
 #
@@ -431,7 +434,7 @@ def main():
     end_point: Point2D = Point2D((1,1))
 
     path_finder_classes: list[type[PathFinderBase]] = [
-        DFS,
+        #DFS,
         BFS,
         DijkstraAlgorithm,
         GBFS,
