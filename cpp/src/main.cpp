@@ -40,11 +40,8 @@ class UserAction;
 class Sound {
 public:
   Sound() { LOG_DEBUG("."); }
-
   Sound(const Sound &x) { LOG_DEBUG("."); }
-
   Sound(Sound &&x) noexcept { LOG_DEBUG("."); }
-
   ~Sound() { LOG_DEBUG("."); }
 };
 
@@ -346,11 +343,7 @@ public:
     NONE,
     PLAYER,
     WALL,
-    BOMB,
-    ZOMBIE,
-    ITEM,
-    BOX,
-    EXPLOSION,
+    TILE,
     COUNT // must be last
   };
 
@@ -361,7 +354,7 @@ public:
   friend std::ostream &operator<<(std::ostream &os, const Entity &obj) {
     static constexpr std::array<std::string_view,
                                 static_cast<size_t>(Entity::Type::COUNT)>
-        type_name{"NONE", "PLAYER", "WALL", "BOMB", "ZOMBIE", "ITEM", "BOX"};
+        type_name{"NONE", "PLAYER", "WALL", "TILE"};
     size_t idx = static_cast<size_t>(obj.GetType());
     assert(idx < type_name.size());
     os << type_name[idx];
@@ -373,7 +366,6 @@ public:
   virtual constexpr float GetCollisionRadiusSquared() {
     return GetCollisionRadius() * GetCollisionRadius();
   }
-  // TODO virtual float GetCollisionRadius() const
 
   virtual constexpr Type GetType() const = 0;
   void SetFlagExpired() { m_FlagExpired = true; }
@@ -432,104 +424,11 @@ private:
   static constexpr float m_CollisionRadiusSq = 1000.0f;
 };
 
-class Explosion final : public Entity {
+class Tile final : public Entity {
 public:
-  Explosion(Vec2D<float> position) : Entity(position) {
-    LOG_DEBUG(".");
-    if (m_Sprite == nullptr) {
-      LoadResources();
-    }
-  }
-  Explosion(const Explosion &) = delete;
-  Explosion(Explosion &&) = delete;
-  ~Explosion() = default;
-
-  Sprite &GetSprite() override {
-    assert(m_Sprite != nullptr);
-    return *m_Sprite;
-  }
-
-  void Update(float time_delta) override {
-    m_ExpirationTime -= time_delta;
-    if (m_ExpirationTime < 0.0f) {
-      this->SetFlagExpired();
-    }
-    Entity::Update(time_delta);
-  }
-
-  constexpr float GetCollisionRadius() const override { return 30.0f; }
-  constexpr Type GetType() const { return Entity::Type::EXPLOSION; }
-  bool IsMovable() const override { return false; }
-  bool IsCollidable() const override { return false; }
-
-private:
-  void LoadResources() {
-    m_Sprite = std::make_unique<Sprite>("resources/explosion.png",
-                                        Vec2D<float>{25.0f, 25.0f});
-  }
-  static std::unique_ptr<Sprite> m_Sprite;
-  float m_ExpirationTime = 100.0f;
-};
-std::unique_ptr<Sprite> Explosion::m_Sprite = nullptr;
-
-class Player;
-
-class Bomb final : public Entity {
-public:
-  Bomb(Vec2D<float> position, const Player& creator) :
-    Entity(position),
-    m_CreatingPlayer(creator)
-  {
-    LOG_DEBUG(".");
-    if (m_Sprite == nullptr) {
-      LoadResources();
-    }
-  }
-  Bomb(const Bomb &x) = delete;
-  Bomb(Bomb &&x) = delete;
-
-  Sprite &GetSprite() override {
-    assert(m_Sprite != nullptr);
-    return *m_Sprite;
-  }
-  void Update(float time_delta) override {
-    m_ExpirationTime -= time_delta;
-    if (m_ExpirationTime < 0.0f) {
-      this->SetFlagExpired();
-    }
-    Entity::Update(time_delta);
-  }
-
-  constexpr float GetCollisionRadius() const override { return 30.0f; }
-  constexpr Type GetType() const { return Entity::Type::BOMB; }
-  bool IsMovable() const override { return false; }
-  bool IsCollidable() const override { return true; }
-  void SpawnExplosions()
-  {
-    // TODO spawn 4 explosions
-  }
-
-  const Player& GetCreatingPlayer() { return m_CreatingPlayer; }
-
-private:
-  void LoadResources() {
-    m_Sprite = std::make_unique<Sprite>("resources/bomb.png",
-                                        Vec2D<float>{25.0f, 40.0f});
-  }
-  static std::unique_ptr<Sprite> m_Sprite;
-  float m_ExpirationTime = 100.0f;
-  const Player& m_CreatingPlayer;
-};
-
-std::unique_ptr<Sprite> Bomb::m_Sprite;
-
-class Item final : public Entity {
-public:
-  void OnPickup(Entity &other);
-
   constexpr float GetCollisionRadius() const override { return 50.0f; }
   bool IsMovable() const override { return false; }
-  bool IsCollidable() const override { return true; }
+  bool IsCollidable() const override { return false; }
 };
 
 class Wall final : public Entity {
@@ -577,10 +476,6 @@ public:
     return *m_Sprite;
   }
 
-  std::shared_ptr<Bomb> CreateBomb() {
-    return std::make_shared<Bomb>(this->GetPosition(), *this);
-  }
-
   constexpr Entity::Type GetType() const override {
     return Entity::Type::PLAYER;
   }
@@ -600,22 +495,17 @@ std::unique_ptr<Sprite> Player::m_Sprite;
 
 using Collision = std::pair<std::shared_ptr<Entity>, std::shared_ptr<Entity>>;
 
-// Game class - TODO Game will be interface,
-// implementations will be LocalGame and RemoteGame (server)?
-// Class with game logic should be identical for remote and local games
-// GameLoop <--> Game
-// GameLoop <--> GameClient <========> GameServer <--> Game
 
-class Game {
+class PathFindingDemo {
 public:
-  Game(int width, int height) : m_Width(width), m_Height(height) {
+  PathFindingDemo(int width, int height) : m_Width(width), m_Height(height) {
     LOG_DEBUG(".");
   }
 
-  ~Game() { LOG_DEBUG("."); }
+  ~PathFindingDemo() { LOG_DEBUG("."); }
 
-  Game(const Game &m) = delete;
-  Game(Game &&m) = delete;
+  PathFindingDemo(const PathFindingDemo &m) = delete;
+  PathFindingDemo(PathFindingDemo &&m) = delete;
 
   void AddEntity(std::shared_ptr<Entity> e) {
     // TODO emplace_back
@@ -651,9 +541,6 @@ public:
                        offset.y + u * wall_size.y};
       m_Entities.push_back(std::make_shared<Wall>(pos));
     }
-    // TODO tady jsi skoncil - problem s tim ze ne vsechny steny se spawnou, bud
-    // jsou spatne cykly, nebo to souvisi s tim ze se obcas nespawnou bomby -
-    // investigovat
   }
 
   std::shared_ptr<Player> GetPlayer() { return m_Player; }
@@ -709,36 +596,12 @@ public:
   }
 
   void CollisionGameLogic(Entity &A, Entity &B) {
-    if (A.GetType() == Entity::Type::PLAYER) {
-      // LOG_DEBUG("got player");
-      if (B.GetType() == Entity::Type::EXPLOSION) {
-        LOG_DEBUG("got player and bomb");
-      }
-    }
+    // not used for path finding demo
   }
 
   void ExpiryGameLogic(Entity &entity)
   {
-    switch (entity.GetType()) {
-      case Entity::Type::BOMB:
-        {
-          Bomb& bomb = static_cast<Bomb&>(entity);
-          bomb.SpawnExplosions();
-          break;
-        }
-      case Entity::Type::EXPLOSION:
-
-        break;
-      // non-expiring classes
-      case Entity::Type::PLAYER:
-      case Entity::Type::WALL:
-      case Entity::Type::ZOMBIE:
-      case Entity::Type::ITEM:
-      case Entity::Type::BOX:
-      default:
-        assert(false);
-        break;
-    }
+    // not used for path finding demo
   }
 
   const std::vector<Collision> &GetEntityCollisions() {
@@ -775,7 +638,7 @@ public:
         m_ExitRequested = true;
       } else if (action.type == UserAction::Type::FIRE) {
         LOG_INFO("Fire");
-        AddEntity(m_Player->CreateBomb());
+        //AddEntity(m_Player->CreateBomb());
       } else if (action.type == UserAction::Type::MOVE) {
         LOG_INFO("Move direction ", action.Argument.position);
         m_Player->SetRequestedVelocity(action.Argument.position * 4.0f);
@@ -822,7 +685,7 @@ public:
     }
   }
 
-  inline void SetGame(std::unique_ptr<Game> x) { m_Game = std::move(x); }
+  inline void SetGame(std::unique_ptr<PathFindingDemo> x) { m_Game = std::move(x); }
   inline void SetWindow(std::unique_ptr<Window> x) { m_Window = std::move(x); }
   inline void SetUserInput(std::unique_ptr<UserInput> x) {
     m_UserInput = std::move(x);
@@ -832,7 +695,7 @@ public:
   }
 
 private:
-  std::unique_ptr<Game> m_Game;
+  std::unique_ptr<PathFindingDemo> m_Game;
   std::unique_ptr<Window> m_Window;
   std::unique_ptr<UserInput> m_UserInput;
   std::unique_ptr<AudioOutput> m_AudioOutput;
@@ -865,21 +728,16 @@ int main(int argc, char **argv) {
   }
 
   /*
-   * Initialize the map and run the game
+   * Initialize the map and run the pathfinding demo
    */
 
-  // some menu should be used to configure the game itself,
-  // e.g. set map size, type, local or remote game,
-  // optionally game server...
-  // for now we go directly to the game
-
-  auto game = std::make_unique<Game>(50, 50);
-  game->CreateMap();
+  auto demo = std::make_unique<PathFindingDemo>(50, 50);
+  demo->CreateMap();
 
   auto game_loop = GameLoop{};
   game_loop.SetWindow(std::move(window));
   game_loop.SetUserInput(std::move(user_input));
   game_loop.SetAudioOutput(std::move(audio_output));
-  game_loop.SetGame(std::move(game));
+  game_loop.SetGame(std::move(demo));
   game_loop.Run();
 }

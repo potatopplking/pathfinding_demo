@@ -19,8 +19,10 @@
     - [x] create a dedicated python script
 - [ ] C++
     - [x] re-use 2D game engine
-    - [ ] add map and tiles with cost
+    - [ ] add tiles (with cost) to map
+        - [ ] conversion functions from tile coords to world coords
+        - [ ] drawing tiles
+        - [ ] add "terrain tiles" with different costs
     - [ ] add mouse-click movement (direct, no pathfinding, player always selected)
-    - [ ] add "terrain tiles" with different costs
-    - [ ] add different sprites
-    - [ ] implement pathfinding and 
+    - [ ] implement pathfinding
+    - [ ] windows build?
