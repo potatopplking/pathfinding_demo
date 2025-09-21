@@ -198,6 +198,14 @@ public:
     SDL_RenderTexture(m_Renderer.get(), s.GetTexture(), nullptr, &rect);
   }
 
+  void DrawRect(const Vec2D<float> &position, const Vec2D<float> size,
+                uint8_t R, uint8_t G, uint8_t B, uint8_t A) {
+    SDL_FRect rect = {position.x - size.x / 2.0f, position.y - size.y / 2.0f,
+                      size.x, size.y};
+    SDL_SetRenderDrawColor(m_Renderer.get(), R, G, B, A);
+    SDL_RenderFillRect(m_Renderer.get(), &rect);
+  }
+
   void ClearWindow() {
     SDL_SetRenderDrawColor(m_Renderer.get(), 50, 50, 50, 255);
     SDL_RenderClear(m_Renderer.get());
@@ -424,13 +432,6 @@ private:
   static constexpr float m_CollisionRadiusSq = 1000.0f;
 };
 
-class Tile final : public Entity {
-public:
-  constexpr float GetCollisionRadius() const override { return 50.0f; }
-  bool IsMovable() const override { return false; }
-  bool IsCollidable() const override { return false; }
-};
-
 class Wall final : public Entity {
 public:
   Wall(Vec2D<float> pos = {0.0f, 0.0f}) : Entity(pos) {
@@ -495,10 +496,73 @@ std::unique_ptr<Sprite> Player::m_Sprite;
 
 using Collision = std::pair<std::shared_ptr<Entity>, std::shared_ptr<Entity>>;
 
+struct Tile {
+  float cost;
+  uint8_t R, G, B, A;
+};
+
+static const std::map<std::string_view, Tile> tile_types = {
+    {"Grass", {1.0, 0, 200, 0, 255}},
+    {"Mud", {2.0, 100, 100, 100, 255}},
+    {"Road", {0.5, 200, 200, 200, 255}},
+};
+
+using TilePos = Vec2D<int>;
+using WorldPos = Vec2D<float>;
+
+class Map {
+
+  // TODO using = ... for tile vector
+
+public:
+  static constexpr float TILE_SIZE = 100.0f; // tile size in world
+
+  Map(int width, int height) : m_Width(width), m_Height(height) {
+    bool sw = true;
+    LOG_DEBUG("width = ", width, " height = ", height);
+    m_Tiles = std::vector<std::vector<const Tile *>>{};
+    for (int i = 0; i < m_Width; i++) {
+      m_Tiles.push_back(std::vector<const Tile *>{});
+      for (int j = 0; j < m_Height; j++) {
+        if (sw)
+          m_Tiles[i].push_back(&tile_types.at("Grass"));
+        else
+          m_Tiles[i].push_back(&tile_types.at("Mud"));
+        sw = !sw;
+      }
+      sw = !sw;
+    }
+  }
+  Map() : Map(0, 0) {}
+
+  const std::vector<std::vector<const Tile *>> &GetMapTiles() const {
+    return m_Tiles;
+  }
+
+  WorldPos TileToWorld(TilePos p) const {
+    return WorldPos{p.x * TILE_SIZE, p.y * TILE_SIZE};
+  }
+
+  TilePos WorldToTile(WorldPos p) const {
+    return TilePos{p.x / TILE_SIZE, p.y / TILE_SIZE};
+  }
+
+  Vec2D<float> GetTileSize() const {
+    return Vec2D<float>{TILE_SIZE, TILE_SIZE};
+  }
+
+private:
+  // std::vector<std::vector<const Tile*>> m_Tiles;
+  std::vector<std::vector<const Tile *>> m_Tiles;
+  int m_Width = 0;
+  int m_Height = 0;
+};
 
 class PathFindingDemo {
 public:
-  PathFindingDemo(int width, int height) : m_Width(width), m_Height(height) {
+  PathFindingDemo(int width, int height)
+      : m_Width(width), m_Height(height), // TODO delete width, height
+        m_Map(width, height) {
     LOG_DEBUG(".");
   }
 
@@ -517,30 +581,6 @@ public:
     m_Player = std::make_shared<Player>();
     m_Player->SetPosition(Vec2D<float>{200.0f, 200.0f});
     m_Entities.push_back(m_Player);
-    LOG_INFO("Re-creating random map");
-    // add some entities
-    size_t map_size_bricks = 8;
-    auto wall = std::make_shared<Wall>();
-    auto wall_size = wall->GetSprite().GetSize();
-    Vec2D<float> offset{100.0f, 100.0f};
-    for (size_t u = 0; u < map_size_bricks; u++) {
-      Vec2D<float> pos{offset.x + wall_size.x * u, offset.y};
-      m_Entities.push_back(std::make_shared<Wall>(pos));
-    }
-    for (size_t u = 1; u < map_size_bricks; u++) {
-      Vec2D<float> pos{offset.x, offset.y + u * wall_size.y};
-      m_Entities.push_back(std::make_shared<Wall>(pos));
-    }
-    for (size_t u = 0; u < map_size_bricks; u++) {
-      Vec2D<float> pos{offset.x + wall_size.x * u,
-                       offset.y + map_size_bricks * wall_size.y};
-      m_Entities.push_back(std::make_shared<Wall>(pos));
-    }
-    for (size_t u = 0; u < map_size_bricks; u++) {
-      Vec2D<float> pos{offset.x + map_size_bricks * wall_size.x,
-                       offset.y + u * wall_size.y};
-      m_Entities.push_back(std::make_shared<Wall>(pos));
-    }
   }
 
   std::shared_ptr<Player> GetPlayer() { return m_Player; }
@@ -599,8 +639,7 @@ public:
     // not used for path finding demo
   }
 
-  void ExpiryGameLogic(Entity &entity)
-  {
+  void ExpiryGameLogic(Entity &entity) {
     // not used for path finding demo
   }
 
@@ -638,13 +677,15 @@ public:
         m_ExitRequested = true;
       } else if (action.type == UserAction::Type::FIRE) {
         LOG_INFO("Fire");
-        //AddEntity(m_Player->CreateBomb());
+        // AddEntity(m_Player->CreateBomb());
       } else if (action.type == UserAction::Type::MOVE) {
         LOG_INFO("Move direction ", action.Argument.position);
         m_Player->SetRequestedVelocity(action.Argument.position * 4.0f);
       }
     };
   }
+
+  const Map &GetMap() const { return m_Map; }
 
   bool IsCollisionBoxVisible() const { return m_DrawCollisionBox; }
   bool IsExitRequested() const { return m_ExitRequested; }
@@ -656,6 +697,7 @@ private:
   bool m_DrawCollisionBox = true;
   std::vector<std::shared_ptr<Entity>> m_Entities;
   std::shared_ptr<Player> m_Player;
+  Map m_Map;
 };
 
 // GameLoop class handles user input and audio/video output,
@@ -672,6 +714,21 @@ public:
       m_Game->UpdateEntities();
 
       m_Window->ClearWindow();
+
+      // draw the map (terrain tiles)
+      const Map &map = m_Game->GetMap();
+      const auto &tiles = map.GetMapTiles();
+      for (int row = 0; row < tiles.size(); row++) {
+        for (int col = 0; col < tiles[row].size(); col++) {
+          // LOG_DEBUG("Drawing rect (", row, ", ", col, ")");
+          m_Window->DrawRect(
+              map.TileToWorld(TilePos{row, col}) + Vec2D<float>{100.0f, 100.0f},
+              map.GetTileSize(), tiles[row][col]->R, tiles[row][col]->G,
+              tiles[row][col]->B, tiles[row][col]->A);
+        }
+      }
+
+      // draw all the entities (player etc)
       for (auto &entity : m_Game->GetEntities()) {
         m_Window->DrawSprite(entity->GetPosition(), entity->GetSprite());
         if (m_Game->IsCollisionBoxVisible()) {
@@ -679,13 +736,16 @@ public:
                                entity->GetCollisionRadius());
         }
       }
+
       m_Window->Flush();
       // TODO measure fps
       std::this_thread::sleep_for(std::chrono::milliseconds(30));
     }
   }
 
-  inline void SetGame(std::unique_ptr<PathFindingDemo> x) { m_Game = std::move(x); }
+  inline void SetGame(std::unique_ptr<PathFindingDemo> x) {
+    m_Game = std::move(x);
+  }
   inline void SetWindow(std::unique_ptr<Window> x) { m_Window = std::move(x); }
   inline void SetUserInput(std::unique_ptr<UserInput> x) {
     m_UserInput = std::move(x);
@@ -731,7 +791,7 @@ int main(int argc, char **argv) {
    * Initialize the map and run the pathfinding demo
    */
 
-  auto demo = std::make_unique<PathFindingDemo>(50, 50);
+  auto demo = std::make_unique<PathFindingDemo>(10, 10);
   demo->CreateMap();
 
   auto game_loop = GameLoop{};
