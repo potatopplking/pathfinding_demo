@@ -210,44 +210,6 @@ class PathFinderBase(ABC):
         return self._elapsed_time_ns, self._visited_node_count
 
 
-class DFS(PathFinderBase):
-    """
-    Recursive depth-first search; returns first path it finds
-    Not very efficient performance and memory-wise,
-    also returns very sub-optimal paths
-    """
-
-    name = "Depth First Search"
-
-    def _CalculatePath(self, 
-                       point: Point2D,
-                       end_point: Point2D,
-                       path: Optional[list[Point2D]] = None,
-                       visited: Optional[set[Point2D]] = None) -> Optional[Path]:
-        if visited is None:
-            visited = set()
-        if path is None:
-            path = list()
-        if self._map is None:
-            return None # to make mypy happy
-        # We don't need to know cost in this case, but we still want to track
-        # how many nodes we've visited
-        _ = self._map.Visit(point) 
-        # we keep visited nodes in separate list and set,
-        # as membership check is faster for set than for list,
-        # but set is not ordered
-        visited.add(point)
-        path.append(point)
-        if point == end_point:
-            return path 
-        for neighbor in self._map.GetNeighbours(point):
-            if neighbor not in visited:
-                res = self._CalculatePath(neighbor, end_point, path, visited)
-                if res:
-                    return res
-        return None
-
-
 class BFS(PathFinderBase):
     """
     Iterative breadth-first search
@@ -434,7 +396,6 @@ def main():
     end_point: Point2D = Point2D((1,1))
 
     path_finder_classes: list[type[PathFinderBase]] = [
-        #DFS,
         BFS,
         DijkstraAlgorithm,
         GBFS,
