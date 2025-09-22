@@ -17,9 +17,9 @@ Run `python pathfinding_demo.py`. Requires numpy and matplotlib to be installed.
 
 Contains the same demo as the standalone script and some notes. To run, either run your own Jupyter Lab, or use the [official website](https://jupyter.org/try-jupyter/lab/):
 
-* click the icon "Upload files"
+* click the icon "Upload files" (on the top of left sidebar)
 * select pathfinding_demo.ipynb
-* file should be now visible in the left bar. Double-click it and confirm default kernel selection
+* file should be now visible in the left sidebar. Double-click it and confirm default kernel selection
 * run all the cells one by one (play button on the top) or run all of at once using menu "Run -> Run All Cells"
 
 ## TODO
@@ -41,10 +41,11 @@ Contains the same demo as the standalone script and some notes. To run, either r
     - [x] create a dedicated python script
 - [ ] C++
     - [x] re-use 2D game engine
-    - [ ] add tiles (with cost) to map
-        - [ ] conversion functions from tile coords to world coords
-        - [ ] drawing tiles
-        - [ ] add "terrain tiles" with different costs
-    - [ ] add mouse-click movement (direct, no pathfinding, player always selected)
+    - [x] add tiles (with cost) to map
+        - [x] conversion functions from tile coords to world coords
+        - [x] drawing tiles
+        - [x] add "terrain tiles" with different costs
+    - [x] add mouse-click action
+    - [ ] add direct movement (through mouse click action, no pathfinding)
     - [ ] implement pathfinding
     - [ ] windows build?
