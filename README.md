@@ -15,7 +15,9 @@ Run `python pathfinding_demo.py`. Requires numpy and matplotlib to be installed.
 
 ### Jupyter notebook
 
-Contains the same demo as the standalone script and some notes. To run, either run your own Jupyter Lab, or use the [official website](https://jupyter.org/try-jupyter/lab/):
+Contains the same demo as the standalone script and some notes. Since Github supports Jupyter Notebooks now, you can go [directly to the file](./python/pathfinding_demo.ipynb).
+
+Alternatively (or if you want to edit the file), you can use the [Jupyeter Lab on the official website](https://jupyter.org/try-jupyter/lab/):
 
 * click the icon "Upload files" (on the top of left sidebar)
 * select pathfinding_demo.ipynb
