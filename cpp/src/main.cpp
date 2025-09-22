@@ -200,7 +200,7 @@ public:
 
   void DrawRect(const Vec2D<float> &position, const Vec2D<float> size,
                 uint8_t R, uint8_t G, uint8_t B, uint8_t A) {
-    SDL_FRect rect = {position.x - size.x / 2.0f, position.y - size.y / 2.0f,
+    SDL_FRect rect = {position.x, position.y,
                       size.x, size.y};
     SDL_SetRenderDrawColor(m_Renderer.get(), R, G, B, A);
     SDL_RenderFillRect(m_Renderer.get(), &rect);
@@ -236,7 +236,7 @@ private:
 
 class UserAction {
 public:
-  enum class Type { NONE, EXIT, MOVE, CROUCH, STAND, FIRE };
+  enum class Type { NONE, EXIT, MOVE, CROUCH, STAND, FIRE, MOVE_TARGET};
 
   UserAction() = default;
 
@@ -324,6 +324,11 @@ public:
           LOG_INFO("Key '", static_cast<char>(kbd_event.key), "' not mapped");
           break;
         }
+      } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+        SDL_MouseButtonEvent mouse_event = event.button;
+        LOG_DEBUG("Mouse down: ", mouse_event.x, ", ", mouse_event.y);
+        m_Actions.emplace_back(UserAction::Type::MOVE_TARGET,
+                               Vec2D<float>{mouse_event.x, mouse_event.y});
       } else {
         // TODO uncomment, for now too much noise
         // LOG_WARNING("Action not processed");
@@ -505,6 +510,7 @@ static const std::map<std::string_view, Tile> tile_types = {
     {"Grass", {1.0, 0, 200, 0, 255}},
     {"Mud", {2.0, 100, 100, 100, 255}},
     {"Road", {0.5, 200, 200, 200, 255}},
+    {"Water", {10.0, 0, 50, 200, 255}},
 };
 
 using TilePos = Vec2D<int>;
@@ -527,7 +533,7 @@ public:
         if (sw)
           m_Tiles[i].push_back(&tile_types.at("Grass"));
         else
-          m_Tiles[i].push_back(&tile_types.at("Mud"));
+          m_Tiles[i].push_back(&tile_types.at("Water"));
         sw = !sw;
       }
       sw = !sw;
@@ -681,6 +687,10 @@ public:
       } else if (action.type == UserAction::Type::MOVE) {
         LOG_INFO("Move direction ", action.Argument.position);
         m_Player->SetRequestedVelocity(action.Argument.position * 4.0f);
+      } else if (action.type == UserAction::Type::MOVE_TARGET) {
+        TilePos p = m_Map.WorldToTile(action.Argument.position);
+        LOG_INFO("Move target: ", action.Argument.position, ", tile pos: ", p);
+        // TODO move
       }
     };
   }
@@ -722,7 +732,7 @@ public:
         for (int col = 0; col < tiles[row].size(); col++) {
           // LOG_DEBUG("Drawing rect (", row, ", ", col, ")");
           m_Window->DrawRect(
-              map.TileToWorld(TilePos{row, col}) + Vec2D<float>{100.0f, 100.0f},
+              map.TileToWorld(TilePos{row, col}),
               map.GetTileSize(), tiles[row][col]->R, tiles[row][col]->G,
               tiles[row][col]->B, tiles[row][col]->A);
         }
