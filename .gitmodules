@@ -4,3 +4,6 @@
 [submodule "vs/glew"]
 	path = vs/glew
 	url = gitea@gitea.veleslabs.org:jan.mrna/glew.git
+[submodule "vs/SDL_image"]
+	path = vs/SDL_image
+	url = https://github.com/libsdl-org/SDL_image.git
