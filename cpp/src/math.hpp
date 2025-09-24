@@ -5,6 +5,11 @@
 #include <concepts>
 #include <iostream>
 
+#ifdef _WIN32
+#include <numbers>
+#define M_PI std::numbers::pi
+#endif
+
 template <typename T> struct Vec2D {
 public:
   Vec2D() = default;
