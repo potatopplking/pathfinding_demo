@@ -1,4 +1,5 @@
 #include <cassert>
+#include <queue>
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
@@ -620,89 +621,41 @@ public:
 
   std::vector<std::shared_ptr<Entity>> &GetEntities() { return m_Entities; }
 
-  void UpdateEntities() {
+  std::optional<WorldPos> GetMoveTarget() {
+    WorldPos current_player_pos = GetPlayer()->GetPosition();
+
+    if (m_MoveQueue.empty()) {
+      return {};
+    }
+
+    WorldPos next_player_pos = m_MoveQueue.front();
+
+    if (current_player_pos.distance(next_player_pos) > 10.0) {
+      // target not reached yet
+      return next_player_pos; 
+    }
+    // target reached, pop it
+    m_MoveQueue.pop();
+    // return nothing - we'll get the next value in the next iteration
+    return {};
+  }
+
+
+  void UpdatePlayerVelocity()
+  {
+    auto player = GetPlayer();
+    auto current_pos = player->GetPosition();
+    double tile_velocity_coeff = m_Map.GetTileVelocityCoeff(current_pos);
+    auto next_pos = GetMoveTarget();
+    auto velocity = WorldPos{};
+    if (next_pos) {
+      velocity = next_pos.value() - current_pos;
+      velocity.normalize();
+      LOG_DEBUG("I want to move to: ", next_pos.value(), ", velocity: ", velocity);
+    }
+    player->SetActualVelocity(velocity * tile_velocity_coeff);
     float time_delta = 1.0f;
-
-    // Remove entities marked as expired and handle expiry logic (e.g. bomb
-    // exploding); for all other entities, reset the actual velocity to the
-    // requested; actual velocity will be updated later with collisions
-    for (auto &entity : m_Entities) {
-      if (entity->IsFlaggedExpired()) {
-        ExpiryGameLogic(*entity);
-        auto it = std::find(m_Entities.begin(), m_Entities.end(), entity);
-        if (it != m_Entities.end()) {
-          std::swap(*it, m_Entities.back());
-          m_Entities.pop_back();
-        }
-      } else {
-        // Actual velocity might be changed later by collisions
-        auto pos = GetPlayer()->GetPosition();
-        double tile_velocity_coeff = m_Map.GetTileVelocityCoeff(pos);
-        entity->SetActualVelocity(entity->GetRequestedVelocity() * tile_velocity_coeff);
-      }
-    }
-
-    // Handle collisions:
-    //  - update actual velocity for colliding objects
-    //  - modify velocity based on current tile
-    //  - handle collision logic
-    auto &collisions = GetEntityCollisions();
-    //    LOG_DEBUG("number of collisions: ", collisions.size());
-    for (auto &collision : collisions) {
-      Entity &A = *std::get<0>(collision);
-      Entity &B = *std::get<1>(collision);
-      if (!A.IsMovable())
-        continue;
-      // modify actual speed
-      // LOG_DEBUG("Collision: A is ", A, ", B is ", B);
-      Vec2D<float> AB = B.GetPosition() - A.GetPosition();
-      A.ZeroActualVelocityInDirection(AB);
-      // handle logic
-      CollisionGameLogic(A, B);
-    }
-
-    // Update entities: this advances animations,
-    // internal timers, and updates positions (with velocity
-    // modified by the collision handling)
-    for (auto &entity : m_Entities) {
-      entity->Update(time_delta);
-    }
-
-  }
-
-  void CollisionGameLogic(Entity &A, Entity &B) {
-    // not used for path finding demo
-  }
-
-  void ExpiryGameLogic(Entity &entity) {
-    // not used for path finding demo
-  }
-
-  const std::vector<Collision> &GetEntityCollisions() {
-    static std::vector<Collision> m_Collisions;
-
-    m_Collisions.clear();
-    for (const auto &entity_A : m_Entities) {
-      for (const auto &entity_B : m_Entities) {
-        if (entity_A == entity_B)
-          continue;
-        if (!entity_A->IsCollidable() || !entity_B->IsCollidable())
-          continue;
-        // check distance of player to given entity
-        auto position_A = entity_A->GetPosition();
-        auto position_B = entity_B->GetPosition();
-        auto distance_sq = position_A.distance_squared(position_B);
-        auto collision_distance_sq =
-            entity_A->GetCollisionRadiusSquared() +
-            entity_B->GetCollisionRadiusSquared() +
-            2 * entity_A->GetCollisionRadius() * entity_B->GetCollisionRadius();
-        // TODO use vector instructions
-        if (distance_sq < collision_distance_sq) {
-          m_Collisions.emplace_back(Collision(entity_A, entity_B));
-        }
-      }
-    }
-    return m_Collisions;
+    player->Update(time_delta);
   }
 
   void HandleActions(const std::vector<UserAction> &actions) {
@@ -717,9 +670,12 @@ public:
         LOG_INFO("Move direction ", action.Argument.position);
         m_Player->SetRequestedVelocity(action.Argument.position * 4.0f);
       } else if (action.type == UserAction::Type::MOVE_TARGET) {
-        TilePos p = m_Map.WorldToTile(action.Argument.position);
-        LOG_INFO("Move target: ", action.Argument.position, ", tile pos: ", p);
-        // TODO move
+        WorldPos wp = action.Argument.position;
+        TilePos p = m_Map.WorldToTile(wp);
+        LOG_INFO("Clearing current move queue and inserting new target: ", wp);
+        std::queue<WorldPos> empty;
+        std::swap(empty, m_MoveQueue);
+        m_MoveQueue.push(wp);
       }
     };
   }
@@ -736,6 +692,7 @@ private:
   bool m_DrawCollisionBox = true;
   std::vector<std::shared_ptr<Entity>> m_Entities;
   std::shared_ptr<Player> m_Player;
+  std::queue<WorldPos> m_MoveQueue;
   Map m_Map;
 };
 
@@ -750,7 +707,7 @@ public:
     LOG_INFO("Running the game");
     while (!m_Game->IsExitRequested()) {
       m_Game->HandleActions(m_UserInput->GetActions());
-      m_Game->UpdateEntities();
+      m_Game->UpdatePlayerVelocity();
 
       m_Window->ClearWindow();
 
