@@ -523,17 +523,17 @@ class Map {
 public:
   static constexpr float TILE_SIZE = 100.0f; // tile size in world
 
-  Map(int width, int height) : m_Width(width), m_Height(height) {
+  Map(int rows, int cols) : m_Cols(cols), m_Rows(rows) {
     bool sw = true;
-    LOG_DEBUG("width = ", width, " height = ", height);
+    LOG_DEBUG("cols = ", cols, " rows = ", rows);
     m_Tiles = std::vector<std::vector<const Tile *>>{};
-    for (int i = 0; i < m_Width; i++) {
+    for (size_t row = 0; row < m_Rows; row++) {
       m_Tiles.push_back(std::vector<const Tile *>{});
-      for (int j = 0; j < m_Height; j++) {
+      for (size_t col = 0; col < m_Cols; col++) {
         if (sw)
-          m_Tiles[i].push_back(&tile_types.at("Grass"));
+          m_Tiles[row].push_back(&tile_types.at("Grass"));
         else
-          m_Tiles[i].push_back(&tile_types.at("Water"));
+          m_Tiles[row].push_back(&tile_types.at("Water"));
         sw = !sw;
       }
       sw = !sw;
@@ -557,11 +557,36 @@ public:
     return Vec2D<float>{TILE_SIZE, TILE_SIZE};
   }
 
+  const Tile* GetTileAt(TilePos p) const {
+    assert(IsTilePosValid(p));
+    size_t row = p.x;
+    size_t col = p.y;
+
+    return m_Tiles[row][col];
+
+  }
+
+  const Tile* GetTileAt(WorldPos p) const {
+    return GetTileAt(WorldToTile(p));
+  }
+
+  bool IsTilePosValid(TilePos p) const {
+    size_t row = p.x;
+    size_t col = p.y;
+
+    return row < m_Tiles.size() && col < m_Tiles[0].size();
+  }
+
+  template<typename T>
+  double GetTileVelocityCoeff(T p) const {
+    return 1.0 / GetTileAt(p)->cost;
+  }
+
 private:
   // std::vector<std::vector<const Tile*>> m_Tiles;
   std::vector<std::vector<const Tile *>> m_Tiles;
-  int m_Width = 0;
-  int m_Height = 0;
+  size_t m_Cols = 0;
+  size_t m_Rows = 0;
 };
 
 class PathFindingDemo {
@@ -611,12 +636,15 @@ public:
         }
       } else {
         // Actual velocity might be changed later by collisions
-        entity->SetActualVelocity(entity->GetRequestedVelocity());
+        auto pos = GetPlayer()->GetPosition();
+        double tile_velocity_coeff = m_Map.GetTileVelocityCoeff(pos);
+        entity->SetActualVelocity(entity->GetRequestedVelocity() * tile_velocity_coeff);
       }
     }
 
     // Handle collisions:
     //  - update actual velocity for colliding objects
+    //  - modify velocity based on current tile
     //  - handle collision logic
     auto &collisions = GetEntityCollisions();
     //    LOG_DEBUG("number of collisions: ", collisions.size());
@@ -639,6 +667,7 @@ public:
     for (auto &entity : m_Entities) {
       entity->Update(time_delta);
     }
+
   }
 
   void CollisionGameLogic(Entity &A, Entity &B) {
@@ -728,8 +757,8 @@ public:
       // draw the map (terrain tiles)
       const Map &map = m_Game->GetMap();
       const auto &tiles = map.GetMapTiles();
-      for (int row = 0; row < tiles.size(); row++) {
-        for (int col = 0; col < tiles[row].size(); col++) {
+      for (size_t row = 0; row < tiles.size(); row++) {
+        for (size_t col = 0; col < tiles[row].size(); col++) {
           // LOG_DEBUG("Drawing rect (", row, ", ", col, ")");
           m_Window->DrawRect(
               map.TileToWorld(TilePos{row, col}),
