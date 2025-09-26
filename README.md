@@ -48,6 +48,6 @@ Alternatively (or if you want to edit the file), you can use the [Jupyeter Lab o
         - [x] drawing tiles
         - [x] add "terrain tiles" with different costs
     - [x] add mouse-click action
-    - [ ] add direct movement (through mouse click action, no pathfinding)
+    - [x] add direct movement (through mouse click action, no pathfinding)
     - [ ] implement pathfinding
     - [ ] windows build?

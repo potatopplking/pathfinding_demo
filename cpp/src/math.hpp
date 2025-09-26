@@ -86,3 +86,6 @@ public:
     return os;
   }
 };
+
+using TilePos = Vec2D<int>;
+using WorldPos = Vec2D<float>;

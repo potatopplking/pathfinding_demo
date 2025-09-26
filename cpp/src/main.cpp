@@ -14,18 +14,14 @@
 #include "array.hpp"
 #include "log.hpp"
 #include "math.hpp"
+#include "pathfinder.hpp"
 
 //
 // Utils
 //
 
-//
-// Math stuff
-//
-
 // Forward declarations
 class Sprite;
-class Sound;
 class UserAction;
 
 //
@@ -37,29 +33,6 @@ class UserAction;
 #include <GL/glew.h>
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
-
-class Sound {
-public:
-  Sound() { LOG_DEBUG("."); }
-  Sound(const Sound &x) { LOG_DEBUG("."); }
-  Sound(Sound &&x) noexcept { LOG_DEBUG("."); }
-  ~Sound() { LOG_DEBUG("."); }
-};
-
-class AudioOutput {
-public:
-  AudioOutput() { LOG_DEBUG("."); }
-  AudioOutput(const AudioOutput &x) = delete;
-  AudioOutput(AudioOutput &&x) = delete;
-  ~AudioOutput() { LOG_DEBUG("."); }
-
-  std::expected<void, std::string> Init() {
-    LOG_INFO("Initialing audio output");
-    return {};
-  }
-
-  void PlaySound(Sound &s);
-};
 
 class Sprite {
 public:
@@ -376,10 +349,6 @@ public:
   }
 
   virtual Sprite &GetSprite() = 0;
-  virtual constexpr float GetCollisionRadius() const = 0;
-  virtual constexpr float GetCollisionRadiusSquared() {
-    return GetCollisionRadius() * GetCollisionRadius();
-  }
 
   virtual constexpr Type GetType() const = 0;
   void SetFlagExpired() { m_FlagExpired = true; }
@@ -399,34 +368,10 @@ public:
     m_RequestedVelocity = new_velocity;
   }
 
-  void ZeroActualVelocityInDirection(Vec2D<float> direction) {
-    // Vectors e1, e2 form the basis for a local coord system,
-    // where e1 is formed by the direction where we want to zero-out
-    // the velocity, and e2 is the orthogonal vector.
-    // Scalars q1, q2 are coordinates for e1, e2 basis.
-    Vec2D<float> e1 = direction.normalized();
-    Vec2D<float> e2 = e1.orthogonal();
-
-    // q1 * e1 + q2 * e2 = v, from this follows:
-    auto &v = GetActualVelocity();
-    float q2 = (v.y * e1.x - v.x * e1.y) / (e2.y * e1.x - e2.x * e1.y);
-    float q1 = (v.x - q2 * e2.x) / e1.x;
-
-    // We then zero-out the q1, but only if it's positive - meaning
-    // it is aiming in the direction of "direction", not out.
-    // (otherwise we're not able to move out from collision with
-    // another object)
-    if (q1 > 0.0f) {
-      SetActualVelocity(q2 * e2);
-    }
-  }
-
   virtual void Update(float time_delta) {
     m_Position += m_ActualVelocity * time_delta;
   }
 
-  virtual bool IsMovable() const = 0;
-  virtual bool IsCollidable() const = 0;
 
 protected:
   Vec2D<float> m_Position;
@@ -435,7 +380,6 @@ protected:
 
 private:
   bool m_FlagExpired = false;
-  static constexpr float m_CollisionRadiusSq = 1000.0f;
 };
 
 class Wall final : public Entity {
@@ -454,9 +398,6 @@ public:
     return *m_Sprite;
   }
   constexpr Entity::Type GetType() const override { return Entity::Type::WALL; }
-  constexpr float GetCollisionRadius() const override { return 50.0f; }
-  bool IsMovable() const override { return false; }
-  bool IsCollidable() const override { return true; }
 
 private:
   void LoadResources() {
@@ -486,9 +427,6 @@ public:
   constexpr Entity::Type GetType() const override {
     return Entity::Type::PLAYER;
   }
-  constexpr float GetCollisionRadius() const override { return 50.0f; }
-  bool IsMovable() const override { return true; }
-  bool IsCollidable() const override { return true; }
 
 private:
   void LoadResources() {
@@ -500,7 +438,6 @@ private:
 
 std::unique_ptr<Sprite> Player::m_Sprite;
 
-using Collision = std::pair<std::shared_ptr<Entity>, std::shared_ptr<Entity>>;
 
 struct Tile {
   float cost;
@@ -514,8 +451,6 @@ static const std::map<std::string_view, Tile> tile_types = {
     {"Water", {10.0, 0, 50, 200, 255}},
 };
 
-using TilePos = Vec2D<int>;
-using WorldPos = Vec2D<float>;
 
 class Map {
 
@@ -534,7 +469,7 @@ public:
         if (sw)
           m_Tiles[row].push_back(&tile_types.at("Grass"));
         else
-          m_Tiles[row].push_back(&tile_types.at("Water"));
+          m_Tiles[row].push_back(&tile_types.at("Road"));
         sw = !sw;
       }
       sw = !sw;
@@ -682,14 +617,12 @@ public:
 
   const Map &GetMap() const { return m_Map; }
 
-  bool IsCollisionBoxVisible() const { return m_DrawCollisionBox; }
   bool IsExitRequested() const { return m_ExitRequested; }
 
 private:
   int m_Width;
   int m_Height;
   bool m_ExitRequested = false;
-  bool m_DrawCollisionBox = true;
   std::vector<std::shared_ptr<Entity>> m_Entities;
   std::shared_ptr<Player> m_Player;
   std::queue<WorldPos> m_MoveQueue;
@@ -727,10 +660,6 @@ public:
       // draw all the entities (player etc)
       for (auto &entity : m_Game->GetEntities()) {
         m_Window->DrawSprite(entity->GetPosition(), entity->GetSprite());
-        if (m_Game->IsCollisionBoxVisible()) {
-          m_Window->DrawCircle(entity->GetPosition(),
-                               entity->GetCollisionRadius());
-        }
       }
 
       m_Window->Flush();
@@ -746,15 +675,11 @@ public:
   inline void SetUserInput(std::unique_ptr<UserInput> x) {
     m_UserInput = std::move(x);
   }
-  inline void SetAudioOutput(std::unique_ptr<AudioOutput> x) {
-    m_AudioOutput = std::move(x);
-  }
 
 private:
   std::unique_ptr<PathFindingDemo> m_Game;
   std::unique_ptr<Window> m_Window;
   std::unique_ptr<UserInput> m_UserInput;
-  std::unique_ptr<AudioOutput> m_AudioOutput;
 };
 
 int main(int argc, char **argv) {
@@ -777,12 +702,6 @@ int main(int argc, char **argv) {
     return error;
   }
 
-  auto audio_output = std::make_unique<AudioOutput>();
-  if (auto initialized = audio_output->Init(); !initialized) {
-    LOG_ERROR(initialized.error());
-    return error;
-  }
-
   /*
    * Initialize the map and run the pathfinding demo
    */
@@ -793,7 +712,6 @@ int main(int argc, char **argv) {
   auto game_loop = GameLoop{};
   game_loop.SetWindow(std::move(window));
   game_loop.SetUserInput(std::move(user_input));
-  game_loop.SetAudioOutput(std::move(audio_output));
   game_loop.SetGame(std::move(demo));
   game_loop.Run();
 }
