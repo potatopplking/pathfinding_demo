@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
 #include "math.hpp"
 #include "map.hpp"
@@ -18,7 +19,7 @@ enum class PathFinderType {
 
 class PathFinderBase {
 public:
-  PathFinderBase() = default;
+  PathFinderBase(const Map* m);
   ~PathFinderBase() = default;
 
   PathFinderBase(const PathFinderBase&) = delete;
@@ -26,11 +27,10 @@ public:
   PathFinderBase& operator=(const PathFinderBase&) = delete;
   PathFinderBase& operator=(PathFinderBase&&) = delete;
 
-  void SetMap(const Map* map);
   virtual const std::string_view& GetName() const = 0; 
-  virtual Path CalculatePath(WorldPos target) = 0;
+  virtual Path CalculatePath(WorldPos start, WorldPos end) = 0;
 
-private:
+protected:
   const Map* m_Map;
 };
 
@@ -38,24 +38,29 @@ private:
 class LinearPathFinder : public PathFinderBase {
 
 public:
-  Path CalculatePath(WorldPos target) override;
+  LinearPathFinder(const Map* m): PathFinderBase(m) {}
+  Path CalculatePath(WorldPos start, WorldPos end) override;
   const std::string_view& GetName() const override { return m_Name; }
 
 private:
   const std::string_view m_Name = "Linear Path";
 };
 
+
 class BFS: public PathFinderBase {
 
 public:
-  Path CalculatePath(WorldPos target) override;
+  BFS(const Map* m): PathFinderBase(m) {}
+  Path CalculatePath(WorldPos start, WorldPos end) override;
   const std::string_view& GetName() const override { return m_Name; }
 
 private:
   const std::string_view m_Name = "Breadth First Search";
+  std::unordered_map<TilePos, double, TilePosHash> m_Distance;
+  std::unordered_map<TilePos, TilePos, TilePosHash> m_CameFrom;
 };
 
-std::unique_ptr<PathFinderBase> create(PathFinderType type);
+std::unique_ptr<PathFinderBase> create(PathFinderType type, const Map* map);
 
 } // pathfinder namespace
   

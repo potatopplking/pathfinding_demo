@@ -7,6 +7,7 @@
 #include <iostream>
 #include <utility>
 
+constexpr double EQUALITY_LIMIT = 1e-6;
 
 template <typename T> struct Vec2D {
 public:
@@ -31,6 +32,16 @@ public:
     return Vec2D{k * v.x, k * v.y};
   }
 
+  friend bool operator==(const Vec2D &a, const Vec2D &b) {
+    if constexpr (std::is_integral_v<T>) {
+      return a.x == b.x && a.y == b.y;
+    } else if constexpr (std::is_floating_point_v<T>) {
+      return a.distance(b) < EQUALITY_LIMIT;
+    } else {
+      static_assert("Unhandled comparison");
+    }
+  }
+
   Vec2D operator*(float b) const { return Vec2D{b * x, b * y}; }
 
   T distance_squared(const Vec2D &other) const {
@@ -49,7 +60,7 @@ public:
     requires std::floating_point<T>
   {
     auto length = sqrt(x * x + y * y);
-    if (length < 1e-6) {
+    if (length < EQUALITY_LIMIT) {
       x = y = 0;
     } else {
       x /= length;
@@ -92,3 +103,12 @@ public:
 
 using TilePos = Vec2D<int>;
 using WorldPos = Vec2D<float>;
+
+struct TilePosHash {
+    std::size_t operator()(const TilePos& p) const noexcept {
+        std::size_t h1 = std::hash<int>{}(p.x);
+        std::size_t h2 = std::hash<int>{}(p.y);
+        return h1 ^ (h2 + 0x9e3779b9 + (h1<<6) + (h1>>2));
+    }
+};
+

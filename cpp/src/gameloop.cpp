@@ -28,7 +28,7 @@ void GameLoop::Run() {
       for (size_t col = 0; col < tiles[row].size(); col++) {
         // LOG_DEBUG("Drawing rect (", row, ", ", col, ")");
         m_Window->DrawRect(
-            map.TileToWorld(TilePos{row, col}),
+            map.TileEdgeToWorld(TilePos{row, col}),
             map.GetTileSize(), tiles[row][col]->R, tiles[row][col]->G,
             tiles[row][col]->B, tiles[row][col]->A);
       }

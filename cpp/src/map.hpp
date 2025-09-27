@@ -21,7 +21,9 @@ public:
 
   const TileGrid &GetMapTiles() const { return m_Tiles; }
 
+  // coordinate conversion functions
   WorldPos TileToWorld(TilePos p) const;
+  WorldPos TileEdgeToWorld(TilePos p) const;
   TilePos WorldToTile(WorldPos p) const;
 
   WorldPos GetTileSize() const;
@@ -29,6 +31,9 @@ public:
   const Tile *GetTileAt(WorldPos p) const;
 
   bool IsTilePosValid(TilePos p) const;
+
+
+  std::vector<TilePos> GetNeighbors(TilePos center) const;
 
   template <typename T> double GetTileVelocityCoeff(T p) const {
     return 1.0 / GetTileAt(p)->cost;

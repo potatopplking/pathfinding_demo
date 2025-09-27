@@ -16,8 +16,7 @@ PathFindingDemo::PathFindingDemo(int width, int height) :
 {
   LOG_DEBUG(".");
   // set default pathfinder method
-  m_PathFinder = pathfinder::create(pathfinder::PathFinderType::LINEAR);
-  m_PathFinder->SetMap(&m_Map);
+  m_PathFinder = pathfinder::create(pathfinder::PathFinderType::LINEAR, (const Map*)&m_Map);
 }
 
 PathFindingDemo::~PathFindingDemo() { LOG_DEBUG("."); }
@@ -84,13 +83,12 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions) {
     } else if (action.type == UserAction::Type::SET_MOVE_TARGET) {
       WorldPos wp = action.Argument.position;
       LOG_INFO("Calculating path to target: ", wp);
-      m_Path = m_PathFinder->CalculatePath(wp);
+      m_Path = m_PathFinder->CalculatePath(m_Player->GetPosition(), wp);
       LOG_INFO("Done, path node count: ", m_Path.size());
     } else if (action.type == UserAction::Type::SELECT_PATHFINDER) {
       using namespace pathfinder;
       PathFinderType type = static_cast<PathFinderType>(action.Argument.number);
-      m_PathFinder = create(type);
-      m_PathFinder->SetMap(&m_Map);
+      m_PathFinder = pathfinder::create(type, (const Map*)&m_Map);
       LOG_INFO("Switched to path finding method: ", m_PathFinder->GetName());
     }
   };

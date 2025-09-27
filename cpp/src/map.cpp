@@ -23,7 +23,11 @@ Map::Map(int rows, int cols) : m_Cols(cols), m_Rows(rows) {
 }
 
 WorldPos Map::TileToWorld(TilePos p) const {
-  return WorldPos{p.x * TILE_SIZE, p.y * TILE_SIZE};
+  return WorldPos{(p.x + 0.5) * TILE_SIZE, (p.y + 0.5) * TILE_SIZE}; 
+}
+
+WorldPos Map::TileEdgeToWorld(TilePos p) const {
+  return WorldPos{p.x * TILE_SIZE, p.y * TILE_SIZE}; 
 }
 
 TilePos Map::WorldToTile(WorldPos p) const {
@@ -50,3 +54,33 @@ bool Map::IsTilePosValid(TilePos p) const {
 
   return row < m_Tiles.size() && col < m_Tiles[0].size();
 }
+
+
+std::vector<TilePos> Map::GetNeighbors(TilePos center) const
+{
+  std::vector<TilePos> neighbours;
+  neighbours.reserve(4);
+
+  std::array<TilePos, 4> candidates = {
+    center + TilePos{1,0},
+    center + TilePos{-1,0},
+    center + TilePos{0, 1},
+    center + TilePos{0, -1},
+  };
+
+  for (const auto& c : candidates) {
+    if (IsTilePosValid(c))
+        neighbours.push_back(c);
+  }
+  return neighbours;
+}
+//  std::vector<TilePos> neighbours;
+//  neighbours.reserve(8);
+//  for (int dx = -1; dx <= 1; ++dx) {
+//      for (int dy = -1; dy <= 1; ++dy) {
+//          if (dx == 0 && dy == 0) continue;
+//          TilePos p{center.x + dx, center.y + dy};
+//          if (IsTilePosValid(p)) neighbours.push_back(std::move(p));
+//      }
+//  }
+//  return neighbours;
