@@ -14,6 +14,11 @@ public:
   Map(int rows, int cols);
   Map() : Map(0, 0) {}
 
+  Map(const Map&) = delete;
+  Map(Map&&) = delete;
+  Map& operator=(const Map&) = delete;
+  Map& operator=(Map&&) = delete;
+
   const TileGrid &GetMapTiles() const { return m_Tiles; }
 
   WorldPos TileToWorld(TilePos p) const;
