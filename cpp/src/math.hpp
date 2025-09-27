@@ -3,9 +3,9 @@
 #include <cassert>
 #include <cmath>
 #include <concepts>
-#include <initializer_list> // needed?
+#include <initializer_list>
 #include <iostream>
-#include <utility> // TODO needed?
+#include <utility>
 
 
 template <typename T> struct Vec2D {

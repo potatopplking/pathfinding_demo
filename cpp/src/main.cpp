@@ -1,9 +1,9 @@
-#include <memory>
-#include "window.hpp"
-#include "user_input.hpp"
-#include "pathfindingdemo.hpp"
 #include "gameloop.hpp"
 #include "log.hpp"
+#include "pathfindingdemo.hpp"
+#include "user_input.hpp"
+#include "window.hpp"
+#include <memory>
 
 int main(int argc, char **argv) {
   constexpr int error = -1;
