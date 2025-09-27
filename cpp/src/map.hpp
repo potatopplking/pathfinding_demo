@@ -34,6 +34,7 @@ public:
 
 
   std::vector<TilePos> GetNeighbors(TilePos center) const;
+  float GetCost(TilePos pos) const { return GetTileAt(pos)->cost; }
 
   template <typename T> double GetTileVelocityCoeff(T p) const {
     return 1.0 / GetTileAt(p)->cost;

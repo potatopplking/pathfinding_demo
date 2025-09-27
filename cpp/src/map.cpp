@@ -15,10 +15,10 @@ Map::Map(int rows, int cols) : m_Cols(cols), m_Rows(rows) {
       if (sw)
         m_Tiles[row].push_back(&tile_types.at("Grass"));
       else
-        m_Tiles[row].push_back(&tile_types.at("Road"));
+        m_Tiles[row].push_back(&tile_types.at("Water"));
       sw = !sw;
     }
-    sw = !sw;
+    //sw = !sw;
   }
 }
 
