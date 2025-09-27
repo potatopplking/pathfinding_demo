@@ -27,6 +27,7 @@ public:
   PathFinderBase& operator=(PathFinderBase&&) = delete;
 
   void SetMap(std::shared_ptr<Map> map);
+  virtual const std::string_view& GetName() const = 0; 
   virtual Path CalculatePath(WorldPos target) = 0;
 
 private:
@@ -35,11 +36,26 @@ private:
 
 
 class LinearPathFinder : public PathFinderBase {
+
+public:
   Path CalculatePath(WorldPos target) override;
+  const std::string_view& GetName() const override { return m_Name; }
+
+private:
+  const std::string_view m_Name = "Linear Path";
+};
+
+class BFS: public PathFinderBase {
+
+public:
+  Path CalculatePath(WorldPos target) override;
+  const std::string_view& GetName() const override { return m_Name; }
+
+private:
+  const std::string_view m_Name = "Breadth First Search";
 };
 
 std::unique_ptr<PathFinderBase> create(PathFinderType type);
-
 
 } // pathfinder namespace
   

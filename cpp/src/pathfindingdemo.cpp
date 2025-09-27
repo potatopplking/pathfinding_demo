@@ -89,6 +89,7 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions) {
       using namespace pathfinder;
       PathFinderType type = static_cast<PathFinderType>(action.Argument.number);
       m_PathFinder = create(type);
+      LOG_INFO("Switched to path finding method: ", m_PathFinder->GetName());
     }
   };
 }
