@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <expected>
 
 #include "math.hpp"
 #include "log.hpp"
