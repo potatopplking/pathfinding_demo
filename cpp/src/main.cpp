@@ -12,8 +12,7 @@ int main(int argc, char **argv) {
    * Initialize the input/output system
    */
 
-  auto window = std::make_unique<Window>(640, 480); // the holy resolution
-  // auto window_init = window->Init();
+  auto window = std::make_unique<Window>(640, 480);
   if (auto initialized = window->Init(); !initialized) {
     LOG_ERROR(initialized.error());
     return error;
@@ -37,4 +36,5 @@ int main(int argc, char **argv) {
   game_loop.SetUserInput(std::move(user_input));
   game_loop.SetGame(std::move(demo));
   game_loop.Run();
+  return 0;
 }
