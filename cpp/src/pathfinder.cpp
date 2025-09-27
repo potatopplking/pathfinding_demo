@@ -6,7 +6,7 @@
 
 namespace pathfinder {
 
-void PathFinderBase::SetMap(std::shared_ptr<Map> map)
+void PathFinderBase::SetMap(const Map* map)
 {
   m_Map = map;
 }

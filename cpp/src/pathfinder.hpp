@@ -26,12 +26,12 @@ public:
   PathFinderBase& operator=(const PathFinderBase&) = delete;
   PathFinderBase& operator=(PathFinderBase&&) = delete;
 
-  void SetMap(std::shared_ptr<Map> map);
+  void SetMap(const Map* map);
   virtual const std::string_view& GetName() const = 0; 
   virtual Path CalculatePath(WorldPos target) = 0;
 
 private:
-  std::shared_ptr<Map> m_Map;
+  const Map* m_Map;
 };
 
 

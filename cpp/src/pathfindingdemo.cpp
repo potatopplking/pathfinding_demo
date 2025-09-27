@@ -17,6 +17,7 @@ PathFindingDemo::PathFindingDemo(int width, int height) :
   LOG_DEBUG(".");
   // set default pathfinder method
   m_PathFinder = pathfinder::create(pathfinder::PathFinderType::LINEAR);
+  m_PathFinder->SetMap(&m_Map);
 }
 
 PathFindingDemo::~PathFindingDemo() { LOG_DEBUG("."); }
@@ -89,6 +90,7 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions) {
       using namespace pathfinder;
       PathFinderType type = static_cast<PathFinderType>(action.Argument.number);
       m_PathFinder = create(type);
+      m_PathFinder->SetMap(&m_Map);
       LOG_INFO("Switched to path finding method: ", m_PathFinder->GetName());
     }
   };
