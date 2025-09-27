@@ -109,3 +109,10 @@ void Window::DrawCircle(const WorldPos &position, float radius) {
                     cy + static_cast<int>(std::round(radius * std::sin(a))));
   }
 }
+
+void Window::DrawLine(const WorldPos &A, const WorldPos &B)
+{
+  SDL_SetRenderDrawColor(m_Renderer.get(), 255, 0, 0, 255);
+  SDL_RenderLine(m_Renderer.get(), A.x, A.y, B.x, B.y);
+}
+

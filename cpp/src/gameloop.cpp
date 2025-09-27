@@ -7,6 +7,8 @@
 #include "window.hpp"
 #include "user_input.hpp"
 #include "log.hpp"
+#include "pathfinder.hpp"
+#include "math.hpp"
 
 void GameLoop::Run() {
   LOG_INFO("Running the game");
@@ -16,6 +18,9 @@ void GameLoop::Run() {
 
     m_Window->ClearWindow();
 
+    // TODO wrap all of the drawing in some function
+    // TODO rethink coupling and dependencies here
+    
     // draw the map (terrain tiles)
     const Map &map = m_Game->GetMap();
     const auto &tiles = map.GetMapTiles();
@@ -29,11 +34,18 @@ void GameLoop::Run() {
       }
     }
 
+    // draw the path, if it exists
+    WorldPos start_pos = m_Game->GetPlayer()->GetPosition();
+    for (const auto& next_pos: m_Game->GetPath()) {
+      m_Window->DrawLine(start_pos, next_pos);
+      start_pos = next_pos;
+    }
+
     // draw all the entities (player etc)
     for (auto &entity : m_Game->GetEntities()) {
       m_Window->DrawSprite(entity->GetPosition(), entity->GetSprite());
     }
-
+    
     m_Window->Flush();
     // TODO measure fps
     std::this_thread::sleep_for(std::chrono::milliseconds(30));

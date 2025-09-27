@@ -28,6 +28,7 @@ public:
   void ClearWindow();
   void Flush();
   void DrawCircle(const WorldPos &position, float radius);
+  void DrawLine(const WorldPos &A, const WorldPos &B);
 
   std::shared_ptr<SDL_Renderer> m_Renderer = nullptr;
   SDL_Window *m_Window;

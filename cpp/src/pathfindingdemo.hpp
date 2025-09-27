@@ -22,8 +22,9 @@ public:
   PathFindingDemo &operator=(PathFindingDemo &&) = delete;
 
   std::shared_ptr<Player> GetPlayer() { return m_Player; }
-  std::vector<std::shared_ptr<Entity>> &GetEntities() { return m_Entities; }
-  const Map &GetMap() const { return m_Map; }
+  std::vector<std::shared_ptr<Entity>>& GetEntities() { return m_Entities; }
+  const Map& GetMap() const { return m_Map; }
+  const pathfinder::Path& GetPath() const { return m_Path; }
   bool IsExitRequested() const { return m_ExitRequested; }
 
   void AddEntity(std::shared_ptr<Entity> e);
