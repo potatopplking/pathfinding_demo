@@ -9,12 +9,13 @@
 
 class UserAction {
 public:
-  enum class Type { NONE, EXIT, MOVE, CROUCH, STAND, FIRE, MOVE_TARGET };
+  enum class Type { NONE, EXIT, SET_MOVE_TARGET, SELECT_PATHFINDER };
 
   UserAction() = default;
   UserAction(Type t) : type(t) {}
   UserAction(Type t, char key) : type(t), Argument{.key = key} {}
   UserAction(Type t, WorldPos v) : type(t), Argument{.position = v} {}
+  UserAction(Type t, int arg) : type(t), Argument{.number = arg} {}
   ~UserAction() = default;
 
   Type type;
@@ -22,6 +23,7 @@ public:
   union {
     WorldPos position;
     char key;
+    int number;
   } Argument;
 };
 

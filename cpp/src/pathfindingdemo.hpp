@@ -9,6 +9,7 @@
 #include "log.hpp"
 #include "map.hpp"
 #include "user_input.hpp"
+#include "pathfinder.hpp"
 
 class PathFindingDemo {
 public:
@@ -34,8 +35,9 @@ public:
 
 private:
   bool m_ExitRequested = false;
+  Map m_Map;
   std::vector<std::shared_ptr<Entity>> m_Entities;
   std::shared_ptr<Player> m_Player;
-  std::queue<WorldPos> m_MoveQueue;
-  Map m_Map;
+  pathfinder::Path m_Path;
+  std::unique_ptr<pathfinder::PathFinderBase> m_PathFinder;
 };
