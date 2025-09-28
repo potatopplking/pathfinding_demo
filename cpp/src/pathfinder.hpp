@@ -15,6 +15,7 @@ enum class PathFinderType {
   LINEAR = 1,
   BFS,
   DIJKSTRA,
+  GBFS,
   COUNT,
 };
 
@@ -73,6 +74,21 @@ private:
   std::unordered_map<TilePos, double, TilePosHash> m_Cost;
   std::unordered_map<TilePos, TilePos, TilePosHash> m_CameFrom;
 };
+
+
+class GBFS: public PathFinderBase {
+
+public:
+  GBFS(const Map* m): PathFinderBase(m) {}
+  Path CalculatePath(WorldPos start, WorldPos end) override;
+  const std::string_view& GetName() const override { return m_Name; }
+
+private:
+  static float Heuristic(const TilePos& a, const TilePos& b);
+  const std::string_view m_Name = "Greedy Best First Search";
+  std::unordered_map<TilePos, TilePos, TilePosHash> m_CameFrom;
+};
+
 
 
 std::unique_ptr<PathFinderBase> create(PathFinderType type, const Map* map);
