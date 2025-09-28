@@ -3,10 +3,19 @@
 #include <cstdint>
 #include <map>
 #include <string_view>
+#include <array>
+#include <unordered_map>
 
 struct Tile {
   float cost;
   uint8_t R, G, B, A;
 };
 
-extern const std::map<std::string_view, Tile> tile_types;
+enum class TileType {
+  GRASS,
+  MUD,
+  ROAD,
+  WATER,
+};
+
+extern const std::unordered_map<TileType, Tile> tile_types;

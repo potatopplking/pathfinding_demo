@@ -11,6 +11,7 @@
 #include "user_input.hpp"
 #include "pathfinder/base.hpp"
 #include "pathfinder/utils.hpp"
+#include "tile.hpp"
 
 PathFindingDemo::PathFindingDemo(int width, int height) :
   m_Map(width, height)
@@ -28,9 +29,18 @@ void PathFindingDemo::AddEntity(std::shared_ptr<Entity> e) {
 }
 
 void PathFindingDemo::CreateMap() {
+  // create the map
+  m_Map.PaintCircle(TilePos{50, 50}, 10, TileType::WATER);
+  m_Map.PaintCircle(TilePos{75, 100}, 50, TileType::WATER);
+  m_Map.PaintLine(TilePos{0,0}, TilePos{100,100}, 3.0, TileType::WATER);
+  m_Map.PaintLine(TilePos{17,6}, TilePos{100,6}, 5.0, TileType::ROAD);
+  m_Map.PaintLine(TilePos{10,17}, TilePos{10,100}, 5.0, TileType::ROAD);
+  m_Map.PaintLine(TilePos{20,10}, TilePos{10,20}, 5.0, TileType::ROAD);
+
+  // add player
   m_Entities.clear();
   m_Player = std::make_shared<Player>();
-  m_Player->SetPosition(WorldPos{200.0f, 200.0f});
+  m_Player->SetPosition(WorldPos{250.0f, 200.0f});
   m_Entities.push_back(m_Player);
 }
 
@@ -47,7 +57,7 @@ std::optional<WorldPos> PathFindingDemo::GetMoveTarget() {
 
   WorldPos next_player_pos = m_Path.front();
 
-  if (current_player_pos.distance(next_player_pos) > 10.0) {
+  if (current_player_pos.distance(next_player_pos) > 1.0) {
     // target not reached yet
     return next_player_pos;
   }
@@ -68,8 +78,8 @@ void PathFindingDemo::UpdatePlayerVelocity() {
   if (next_pos) {
     velocity = next_pos.value() - current_pos;
     velocity.normalize();
-    LOG_DEBUG("I want to move to: ", next_pos.value(),
-              ", velocity: ", velocity);
+    //LOG_DEBUG("I want to move to: ", next_pos.value(),
+    //          ", velocity: ", velocity);
   }
   player->SetActualVelocity(velocity * tile_velocity_coeff);
   float time_delta = 1.0f;

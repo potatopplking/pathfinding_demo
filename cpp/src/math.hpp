@@ -14,9 +14,23 @@ public:
   Vec2D() = default;
   ~Vec2D() = default;
 
-  Vec2D &operator+=(const Vec2D &other) {
+  template <typename U>
+  Vec2D(Vec2D<U> other) {
+    this->x = static_cast<T>(other.x);
+    this->y = static_cast<T>(other.y);
+  }
+
+  Vec2D& operator+=(const Vec2D &other) {
     x += other.x;
     y += other.y;
+    return *this;
+  }
+
+  template <typename U>
+  requires std::is_arithmetic_v<U>
+  Vec2D& operator/=(U k) {
+    this->x /= static_cast<T>(k);
+    this->y /= static_cast<T>(k);
     return *this;
   }
 
@@ -28,8 +42,18 @@ public:
     return Vec2D{a.x - b.x, a.y - b.y};
   }
 
-  friend Vec2D operator*(float k, const Vec2D &v) {
+  template <typename U>
+    requires std::is_arithmetic_v<U>
+  friend Vec2D operator*(U k, const Vec2D &v)
+  {
     return Vec2D{k * v.x, k * v.y};
+  }
+
+  template <typename U>
+    requires std::is_arithmetic_v<U>
+  friend Vec2D operator/(const Vec2D &v, U k)
+  {
+    return Vec2D{v.x / k, v.y / k};
   }
 
   friend bool operator==(const Vec2D &a, const Vec2D &b) {
@@ -76,7 +100,7 @@ public:
     return v;
   }
 
-  Vec2D orthogonal()
+  Vec2D orthogonal() const
   {
     Vec2D v(*this);
     

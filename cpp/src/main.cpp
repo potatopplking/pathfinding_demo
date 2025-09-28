@@ -28,7 +28,7 @@ int main() {
    * Initialize the map and run the pathfinding demo
    */
 
-  auto demo = std::make_unique<PathFindingDemo>(10, 10);
+  auto demo = std::make_unique<PathFindingDemo>(100, 100);
   demo->CreateMap();
 
   auto game_loop = GameLoop{};

@@ -9,7 +9,7 @@ using TileGrid = std::vector<std::vector<const Tile *>>;
 
 class Map {
 public:
-  static constexpr float TILE_SIZE = 100.0f; // tile size in world
+  static constexpr float TILE_SIZE = 10.0f; // tile size in world
 
   Map(int rows, int cols);
   Map() : Map(0, 0) {}
@@ -32,6 +32,9 @@ public:
 
   bool IsTilePosValid(TilePos p) const;
 
+  // methods for drawing on the map
+  void PaintCircle(TilePos center, unsigned radius, TileType tile_type);
+  void PaintLine(TilePos start, TilePos stop, double width, TileType tile_type);
 
   std::vector<TilePos> GetNeighbors(TilePos center) const;
   float GetCost(TilePos pos) const { return GetTileAt(pos)->cost; }
