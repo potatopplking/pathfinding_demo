@@ -9,7 +9,7 @@
 #include "log.hpp"
 #include "map.hpp"
 #include "user_input.hpp"
-#include "pathfinder.hpp"
+#include "pathfinder/base.hpp"
 
 class PathFindingDemo {
 public:

@@ -9,14 +9,15 @@
 #include "log.hpp"
 #include "map.hpp"
 #include "user_input.hpp"
-#include "pathfinder.hpp"
+#include "pathfinder/base.hpp"
+#include "pathfinder/utils.hpp"
 
 PathFindingDemo::PathFindingDemo(int width, int height) :
   m_Map(width, height)
 {
   LOG_DEBUG(".");
   // set default pathfinder method
-  m_PathFinder = pathfinder::create(pathfinder::PathFinderType::LINEAR, (const Map*)&m_Map);
+  m_PathFinder = pathfinder::utils::create(pathfinder::PathFinderType::LINEAR, (const Map*)&m_Map);
 }
 
 PathFindingDemo::~PathFindingDemo() { LOG_DEBUG("."); }
@@ -88,7 +89,7 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions) {
     } else if (action.type == UserAction::Type::SELECT_PATHFINDER) {
       using namespace pathfinder;
       PathFinderType type = static_cast<PathFinderType>(action.Argument.number);
-      m_PathFinder = pathfinder::create(type, (const Map*)&m_Map);
+      m_PathFinder = pathfinder::utils::create(type, (const Map*)&m_Map);
       LOG_INFO("Switched to path finding method: ", m_PathFinder->GetName());
     }
   };

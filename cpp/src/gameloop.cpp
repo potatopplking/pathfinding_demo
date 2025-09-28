@@ -7,7 +7,7 @@
 #include "window.hpp"
 #include "user_input.hpp"
 #include "log.hpp"
-#include "pathfinder.hpp"
+#include "pathfinder/base.hpp"
 #include "math.hpp"
 
 void GameLoop::Run() {
