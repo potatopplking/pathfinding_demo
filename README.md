@@ -6,10 +6,10 @@
 
 This is a demo of pathfinding on a 2D grid. It consists of 2 main parts:
 
-* [python](#Python) notes and implementation
+* python notes and implementation
     * jupyter notebook file
     * standalone python script
-* [C++](#C++) interactive demo
+* C++ interactive demo
 
 ## Python
 
@@ -20,13 +20,6 @@ Run `python pathfinding_demo.py`. Requires numpy and matplotlib to be installed.
 ### Jupyter notebook
 
 Contains the same demo as the standalone script and some notes. Since Github supports Jupyter Notebooks now, you can go [directly to the file](./python/pathfinding_demo.ipynb).
-
-Alternatively (or if you want to edit the file), you can use the [Jupyeter Lab on the official website](https://jupyter.org/try-jupyter/lab/):
-
-* click the icon "Upload files" (on the top of left sidebar)
-* select pathfinding_demo.ipynb
-* file should be now visible in the left sidebar. Double-click it and confirm default kernel selection
-* run all the cells one by one (play button on the top) or run all of at once using menu "Run -> Run All Cells"
 
 ## C++
 
@@ -57,7 +50,7 @@ make -j $(nproc)
 
 ### Run
 
-Run the "pathfinding" in the [cpp](./cpp/) folder.
+Run the `pathfinding` binary in the [cpp](./cpp/) folder.
 
 ## TODO
 
@@ -93,7 +86,7 @@ Run the "pathfinding" in the [cpp](./cpp/) folder.
         - [x] VS solution
         - [ ] merge to master
         - [ ] cmake?
-    - [ ] add screenshot
+    - [x] add screenshot
     - [ ] zoom + pan of the map
     - [ ] maze generator?
     - [ ] collisions
