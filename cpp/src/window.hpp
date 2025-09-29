@@ -30,11 +30,11 @@ public:
   void DrawCircle(const WorldPos &position, float radius);
   void DrawLine(const WorldPos &A, const WorldPos &B);
 
+private:
+  uint32_t m_Width;
+  uint32_t m_Height;
   std::shared_ptr<SDL_Renderer> m_Renderer = nullptr;
   SDL_Window *m_Window;
   SDL_GLContext m_Context;
 
-private:
-  uint32_t m_Width;
-  uint32_t m_Height;
 };
