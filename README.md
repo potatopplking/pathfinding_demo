@@ -1,5 +1,7 @@
 # Pathfinding demo
 
+![C++ pathfinding demo](./docs/img/screenshot_1.png)
+
 **Work in progress**
 
 This is a demo of pathfinding on a 2D grid. It consists of 2 main parts:
@@ -91,6 +93,7 @@ Run the "pathfinding" in the [cpp](./cpp/) folder.
         - [x] VS solution
         - [ ] merge to master
         - [ ] cmake?
+    - [ ] add screenshot
     - [ ] zoom + pan of the map
     - [ ] maze generator?
     - [ ] collisions
