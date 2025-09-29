@@ -29,18 +29,36 @@ void PathFindingDemo::AddEntity(std::shared_ptr<Entity> e) {
 }
 
 void PathFindingDemo::CreateMap() {
-  // create the map
+  // lake
   m_Map.PaintCircle(TilePos{50, 50}, 10, TileType::WATER);
   m_Map.PaintCircle(TilePos{75, 100}, 50, TileType::WATER);
+  // river
   m_Map.PaintLine(TilePos{0,0}, TilePos{100,100}, 3.0, TileType::WATER);
+  // road
   m_Map.PaintLine(TilePos{17,6}, TilePos{100,6}, 5.0, TileType::ROAD);
   m_Map.PaintLine(TilePos{10,17}, TilePos{10,100}, 5.0, TileType::ROAD);
   m_Map.PaintLine(TilePos{20,10}, TilePos{10,20}, 5.0, TileType::ROAD);
+  // bridges
+  m_Map.PaintLine(TilePos{50,75}, TilePos{70,75}, 5.0, TileType::WOOD);
+  m_Map.PaintLine(TilePos{95,26}, TilePos{95,60}, 5.0, TileType::WOOD);
+  // island
+  m_Map.PaintRectangle(TilePos{70, 60}, TilePos{100,100}, TileType::GRASS);
+  // walls
+  m_Map.PaintLine(TilePos{71,60}, TilePos{90,60}, 1.0, TileType::WALL);
+  m_Map.PaintLine(TilePos{77,67}, TilePos{100,67}, 1.0, TileType::WALL);
+  m_Map.PaintLine(TilePos{71,60}, TilePos{71,75}, 1.0, TileType::WALL);
+  m_Map.PaintLine(TilePos{72,73}, TilePos{95,73}, 1.0, TileType::WALL);
+  m_Map.PaintLine(TilePos{95,73}, TilePos{95,90}, 1.0, TileType::WALL);
+  m_Map.PaintLine(TilePos{71,81}, TilePos{71,100}, 1.0, TileType::WALL);
+  m_Map.PaintLine(TilePos{72,81}, TilePos{90,81}, 1.0, TileType::WALL);
+  m_Map.PaintLine(TilePos{89,87}, TilePos{89,100}, 1.0, TileType::WALL);
+  m_Map.PaintLine(TilePos{84,81}, TilePos{84,96}, 1.0, TileType::WALL);
+  m_Map.PaintLine(TilePos{78,87}, TilePos{78,100}, 1.0, TileType::WALL);
 
   // add player
   m_Entities.clear();
   m_Player = std::make_shared<Player>();
-  m_Player->SetPosition(WorldPos{250.0f, 200.0f});
+  m_Player->SetPosition(m_Map.TileToWorld(TilePos{25, 20}));
   m_Entities.push_back(m_Player);
 }
 

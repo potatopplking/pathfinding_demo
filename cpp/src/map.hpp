@@ -35,6 +35,7 @@ public:
   // methods for drawing on the map
   void PaintCircle(TilePos center, unsigned radius, TileType tile_type);
   void PaintLine(TilePos start, TilePos stop, double width, TileType tile_type);
+  void PaintRectangle(TilePos first_corner, TilePos second_corner, TileType tile_type);
 
   std::vector<TilePos> GetNeighbors(TilePos center) const;
   float GetCost(TilePos pos) const { return GetTileAt(pos)->cost; }

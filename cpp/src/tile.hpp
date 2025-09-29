@@ -13,9 +13,10 @@ struct Tile {
 
 enum class TileType {
   GRASS,
-  MUD,
+  WOOD,
   ROAD,
   WATER,
+  WALL,
 };
 
 extern const std::unordered_map<TileType, Tile> tile_types;

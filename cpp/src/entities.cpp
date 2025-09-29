@@ -60,7 +60,7 @@ Sprite &Player::GetSprite() {
 
 void Player::LoadResources() {
   m_Sprite =
-      std::make_unique<Sprite>("resources/player.png", WorldPos{38.0f, 46.0f});
+      std::make_unique<Sprite>("resources/player.png", WorldPos{19.0f, 23.0f});
 }
 
 std::unique_ptr<Sprite> Player::m_Sprite;

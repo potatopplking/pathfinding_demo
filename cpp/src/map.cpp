@@ -104,12 +104,29 @@ void Map::PaintLine(TilePos start_tile, TilePos stop_tile, double width, TileTyp
   for (double t = 0; t < line_length; t += 1.0) {
     for (double ortho_t = 0; ortho_t < width; ortho_t += 0.1) {
       auto tile_pos = start + step * t + ortho * ortho_t;
-      size_t row = static_cast<size_t>(tile_pos.x);
-      size_t col = static_cast<size_t>(tile_pos.y);
       if (IsTilePosValid(tile_pos)) {
+        size_t row = static_cast<size_t>(tile_pos.x);
+        size_t col = static_cast<size_t>(tile_pos.y);
         m_Tiles[row][col] = &tile_types.at(tile_type);
       }
     }
   }
 }
 
+
+void Map::PaintRectangle(TilePos first_corner, TilePos second_corner, TileType tile_type)
+{
+  std::initializer_list<int> xvals = {first_corner.x, second_corner.x};
+  std::initializer_list<int> yvals = {first_corner.y, second_corner.y};
+  for (int x = std::min(xvals); x < std::max(xvals); x++) {
+    for (int y = std::min(yvals); y < std::max(yvals); y++) {
+      TilePos tile_pos{x,y};
+      LOG_DEBUG("tile_pos = ", tile_pos); 
+      if (IsTilePosValid(tile_pos)) {
+        size_t row = static_cast<size_t>(tile_pos.x);
+        size_t col = static_cast<size_t>(tile_pos.y);
+        m_Tiles[row][col] = &tile_types.at(tile_type);
+      }
+    }
+  }
+}
