@@ -18,7 +18,7 @@ PathFindingDemo::PathFindingDemo(int width, int height) :
 {
   LOG_DEBUG(".");
   // set default pathfinder method
-  m_PathFinder = pathfinder::utils::create(pathfinder::PathFinderType::LINEAR, (const Map*)&m_Map);
+  m_PathFinder = pathfinder::utils::create(pathfinder::PathFinderType::DIJKSTRA, (const Map*)&m_Map);
 }
 
 PathFindingDemo::~PathFindingDemo() { LOG_DEBUG("."); }
@@ -63,7 +63,7 @@ void PathFindingDemo::CreateMap() {
 }
 
 WorldPos PathFindingDemo::GetRandomPosition() const {
-  return WorldPos{0.0, 0.0};
+  return WorldPos{0.0, 0.0}; // totally random!
 }
 
 std::optional<WorldPos> PathFindingDemo::GetMoveTarget() {
