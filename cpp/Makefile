@@ -9,15 +9,22 @@ LDLIBS   := -lSDL3 -lSDL3_image -lGLEW -lGL
 SRC_DIR  := src
 BUILD_DIR:= build
 TARGET   := pathfinding
+TEST_TARGET := unittest
 
 #----------------------------------
 SOURCES := $(shell find $(SRC_DIR) -name '*.cpp')
 OBJECTS := $(SOURCES:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
 
 #----------------------------------
-.PHONY: all clean
+.PHONY: all clean test
 
 all: $(TARGET)
+
+test: $(TEST_TARGET)
+	./$(TEST_TARGET)
+
+$(TEST_TARGET): test/test.cpp
+	$(CXX) -std=c++23 -lgtest -Isrc -o $@ $<
 
 # link step
 $(TARGET): $(OBJECTS)
@@ -32,4 +39,4 @@ $(BUILD_DIR):
 	mkdir -p $@
 
 clean:
-	rm -rf $(BUILD_DIR) $(TARGET)
+	rm -rf $(BUILD_DIR) $(TARGET) $(TEST_TARGET)
