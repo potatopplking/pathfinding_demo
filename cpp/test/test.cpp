@@ -376,6 +376,38 @@ TEST(vec, GetOrthogonal)
   ASSERT_FLOAT_EQ(v2[1], 5.0f);
 }
 
+TEST(vec, DistanceTo)
+{
+  // Test DistanceTo with 3D vectors
+  vec3 v1{0.0f, 0.0f, 0.0f};
+  vec3 v2{3.0f, 4.0f, 0.0f};
+  
+  float distance = v1.DistanceTo(v2);
+  ASSERT_FLOAT_EQ(distance, 5.0f); // 3-4-5 triangle
+  
+  // Distance should be symmetric
+  ASSERT_FLOAT_EQ(v2.DistanceTo(v1), distance);
+  
+  // Test with 2D vectors
+  vec2 a{1.0f, 1.0f};
+  vec2 b{4.0f, 5.0f};
+  
+  float distance_2d = a.DistanceTo(b);
+  ASSERT_FLOAT_EQ(distance_2d, 5.0f); // sqrt((4-1)² + (5-1)²) = sqrt(9+16) = 5
+  
+  // Distance to self should be zero
+  ASSERT_FLOAT_EQ(v1.DistanceTo(v1), 0.0f);
+  ASSERT_FLOAT_EQ(a.DistanceTo(a), 0.0f);
+  
+  // Test that original vectors are unchanged
+  ASSERT_FLOAT_EQ(v1[0], 0.0f);
+  ASSERT_FLOAT_EQ(v1[1], 0.0f);
+  ASSERT_FLOAT_EQ(v1[2], 0.0f);
+  ASSERT_FLOAT_EQ(v2[0], 3.0f);
+  ASSERT_FLOAT_EQ(v2[1], 4.0f);
+  ASSERT_FLOAT_EQ(v2[2], 0.0f);
+}
+
 TEST(vec, ChainedOperations) {
   vec2 a{1.0f, 2.0f};
   vec2 b{3.0f, 4.0f};
