@@ -5,6 +5,7 @@
 #include "log.hpp"
 #include "math.hpp"
 #include "sprite.hpp"
+#include "coorginates.hpp"
 
 Entity::Entity(WorldPos position) : m_Position(position) {
   LOG_DEBUG("spawning entity at position ", position);
@@ -25,13 +26,13 @@ void Entity::ZeroActualVelocityInDirection(WorldPos direction) {
   // where e1 is formed by the direction where we want to zero-out
   // the velocity, and e2 is the orthogonal vector.
   // Scalars q1, q2 are coordinates for e1, e2 basis.
-  WorldPos e1 = direction.normalized();
-  WorldPos e2 = e1.orthogonal();
+  WorldPos e1 = direction.GetNormalized();
+  WorldPos e2 = e1.GetOrthogonal();
 
   // q1 * e1 + q2 * e2 = v, from this follows:
   auto &v = GetActualVelocity();
-  float q2 = (v.y * e1.x - v.x * e1.y) / (e2.y * e1.x - e2.x * e1.y);
-  float q1 = (v.x - q2 * e2.x) / e1.x;
+  float q2 = (v.y() * e1.x() - v.x() * e1.y()) / (e2.y() * e1.x() - e2.x() * e1.y());
+  float q1 = (v.x() - q2 * e2.x()) / e1.x();
 
   // We then zero-out the q1, but only if it's positive - meaning
   // it is aiming in the direction of "direction", not out.
