@@ -6,6 +6,209 @@
 #include <initializer_list>
 #include <iostream>
 #include <utility>
+#include <algorithm>
+#include <ranges>
+#include <numeric>
+
+
+template <typename T>
+requires std::floating_point<T>
+static inline bool equalEpsilon(const T& a, const T& b)
+{
+  constexpr auto epsilon = [](){ 
+    if constexpr (std::is_same_v<T, float>) {
+      return T{1e-5};
+    } else {
+      return T{1e-12}; // double, long double
+    }
+  }();
+  if (a == b) {
+    // handle special cases: bit equality, Inf...
+    return true;
+  }
+  return std::abs(a - b) < epsilon;
+}
+
+
+template <typename T, size_t N>
+class vec {
+public:
+  vec() : m_Array{} {}
+
+  template <typename... ArgsT>
+  requires (std::same_as<ArgsT, T> && ...) && (sizeof...(ArgsT) == N)
+  vec(ArgsT... args) : m_Array{args...} {}
+
+  const T& operator[](size_t index) const
+  {
+    // we leave run-time checks to the underlying std::array
+    return m_Array[index];
+  }
+
+  T& operator[](size_t index)
+  {
+    // we leave run-time checks to the underlying std::array
+    return m_Array[index];
+  }
+
+  friend std::ostream &operator<<(std::ostream &os, const vec &obj)
+  {
+    os << "( ";
+    for (const auto& element : obj.m_Array) {
+      os << element << " ";
+    }
+    os << ")";
+    return os;
+  }
+
+
+  //
+  // binary operators
+  //
+
+  friend bool operator==(const vec& a, const vec& b)
+  {
+    for (const auto& [u, v] : std::views::zip(a.m_Array,b.m_Array)) {
+      if (!equalEpsilon(u, v)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  friend bool operator!=(const vec& a, const vec& b)
+  {
+    return !(a == b);
+  }
+
+  friend vec operator+(const vec& a, const vec& b)
+  {
+    vec<T,N> c;
+    std::ranges::transform(a.m_Array, b.m_Array, c.m_Array.begin(), std::plus{});
+    return c;
+  }
+
+  friend vec operator-(const vec& a, const vec& b)
+  {
+    vec<T,N> c;
+    std::ranges::transform(a.m_Array, b.m_Array, c.m_Array.begin(), std::minus{});
+    return c;
+  }
+
+  friend vec operator*(const vec& a, const T& scalar)
+  {
+    vec<T,N> c;
+    std::ranges::transform(a.m_Array, std::views::repeat(scalar), c.m_Array.begin(), std::multiplies{});
+    return c;
+  }
+
+  friend vec operator*(const T& scalar, const vec& a) {
+    return a * scalar;
+  }
+
+  friend vec operator/(const vec& a, const T& scalar)
+  {
+    vec<T,N> c;
+    std::ranges::transform(a.m_Array, std::views::repeat(scalar), c.m_Array.begin(), std::divides{});
+    return c;
+  }
+
+  //
+  // compound-assignment operators
+  //
+  
+  vec& operator+=(const vec& b)
+  {
+    vec& a = *this;
+    std::ranges::transform(a.m_Array, b.m_Array, a.m_Array.begin(), std::plus{});
+    return a;
+  }
+
+  vec& operator-=(const vec& b)
+  {
+    vec& a = *this;
+    std::ranges::transform(a.m_Array, b.m_Array, a.m_Array.begin(), std::minus{});
+    return a;
+  }
+
+  
+  //
+  // Utility functions
+  //
+
+  T LengthSquared() const
+  {
+    return std::transform_reduce(
+        m_Array.begin(), m_Array.end(),
+        T{0.0},
+        std::plus{},
+        [](T x){
+          return x*x;
+        }
+    );
+  }
+
+  T Length() const
+  {
+    return std::sqrt(LengthSquared());
+  }
+
+  //
+  // In-place vector operations
+  //
+
+  void Normalize()
+  {
+    T length = Length();
+    if (equalEpsilon(length, T{0}))
+        return;
+    std::ranges::transform(m_Array, std::views::repeat(length), m_Array.begin(), std::divides{});
+  }
+
+
+  //
+  // Methods returning new object
+  //
+  
+  vec GetNormalized() const
+  {
+    vec tmp = *this;
+    tmp.Normalize();
+    return tmp;
+  }
+
+  vec GetOrthogonal() const requires (N == 2)
+  {
+    vec tmp = *this;
+
+    std::swap(tmp.m_Array[0], tmp.m_Array[1]);
+    tmp.m_Array[0] *= -1;
+
+    return tmp;
+  }
+
+//  const T& x = m_Array[0];
+//  const T& y = m_Array[1];
+//  const T& z = m_Array[2];
+
+
+private:
+    std::array<T,N> m_Array;
+};
+
+
+using vec2 = vec<float, 2>;
+using vec3 = vec<float, 3>;
+using vec4 = vec<float, 4>;
+using dvec2 = vec<double, 2>;
+using dvec3 = vec<double, 3>;
+using dvec4 = vec<double, 4>;
+using ivec2 = vec<std::int32_t, 2>;
+using ivec3 = vec<std::int32_t, 3>;
+using ivec4 = vec<std::int32_t, 4>;
+using uvec2 = vec<std::uint32_t, 2>;
+using uvec3 = vec<std::uint32_t, 3>;
+using uvec4 = vec<std::uint32_t, 4>;
 
 constexpr double EQUALITY_LIMIT = 1e-6;
 
@@ -132,6 +335,7 @@ public:
 
 using TilePos = Vec2D<int>;
 using WorldPos = Vec2D<float>;
+using WindowPos = Vec2D<float>;
 
 struct TilePosHash {
     std::size_t operator()(const TilePos& p) const noexcept {
