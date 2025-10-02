@@ -153,6 +153,11 @@ public:
     return std::sqrt(LengthSquared());
   }
 
+  T DistanceTo(const vec& b) const {
+    const vec& a = *this;
+    return (a - b).Length();
+  } 
+
   //
   // In-place vector operations
   //
