@@ -12,13 +12,13 @@
 
 Sprite::Sprite() : m_Texture(nullptr, SDL_DestroyTexture) {}
 
-Sprite::Sprite(std::string path, Vec2D<float> center) : Sprite() {
+Sprite::Sprite(std::string path, WorldPos center) : Sprite() {
   LoadImage(path, center);
 }
 
 Sprite::~Sprite() { LOG_DEBUG("."); }
 
-void Sprite::LoadImage(std::string path, Vec2D<float> image_center) {
+void Sprite::LoadImage(std::string path, WorldPos image_center) {
   LOG_INFO("Loading image ", path);
   assert(m_Renderer != nullptr);
 

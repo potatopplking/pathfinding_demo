@@ -60,7 +60,15 @@ public:
   // binary operators
   //
 
-  friend bool operator==(const vec &a, const vec &b) {
+  friend bool operator==(const vec &a, const vec &b)
+    requires (std::is_integral_v<T>)
+  {
+    return std::ranges::equal(a.m_Array, b.m_Array);
+  }
+
+  friend bool operator==(const vec &a, const vec &b)
+    requires (std::is_floating_point_v<T>)
+  {
     for (const auto &[u, v] : std::views::zip(a.m_Array, b.m_Array)) {
       if (!equalEpsilon(u, v)) {
         return false;
@@ -72,21 +80,21 @@ public:
   friend bool operator!=(const vec &a, const vec &b) { return !(a == b); }
 
   friend vec operator+(const vec &a, const vec &b) {
-    vec<T, N> c;
+    vec<T, N, Tag> c;
     std::ranges::transform(a.m_Array, b.m_Array, c.m_Array.begin(),
                            std::plus{});
     return c;
   }
 
   friend vec operator-(const vec &a, const vec &b) {
-    vec<T, N> c;
+    vec<T, N, Tag> c;
     std::ranges::transform(a.m_Array, b.m_Array, c.m_Array.begin(),
                            std::minus{});
     return c;
   }
 
   friend vec operator*(const vec &a, const T &scalar) {
-    vec<T, N> c;
+    vec<T, N, Tag> c;
     std::ranges::transform(a.m_Array, std::views::repeat(scalar),
                            c.m_Array.begin(), std::multiplies{});
     return c;
@@ -95,7 +103,7 @@ public:
   friend vec operator*(const T &scalar, const vec &a) { return a * scalar; }
 
   friend vec operator/(const vec &a, const T &scalar) {
-    vec<T, N> c;
+    vec<T, N, Tag> c;
     std::ranges::transform(a.m_Array, std::views::repeat(scalar),
                            c.m_Array.begin(), std::divides{});
     return c;
@@ -124,7 +132,7 @@ public:
   //
 
   T LengthSquared() const {
-    return std::transform_reduce(m_Array.begin(), m_Array.end(), T{0.0},
+    return std::transform_reduce(m_Array.begin(), m_Array.end(), T{},
                                  std::plus{}, [](T x) { return x * x; });
   }
 
@@ -237,7 +245,7 @@ struct TileTag {};
 // types for each domain
 using WorldPos = vec<float, 2, WorldTag>;
 using WindowPos = vec<float, 2, WindowTag>;
-using TilePos = vec<int32_t, 2, WindowTag>;
+using TilePos = vec<int32_t, 2, TileTag>;
 
 //
 // Utils

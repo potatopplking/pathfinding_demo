@@ -63,7 +63,7 @@ void PathFindingDemo::CreateMap() {
 }
 
 WorldPos PathFindingDemo::GetRandomPosition() const {
-  return WorldPos{0.0, 0.0}; // totally random!
+  return WorldPos{0.0f, 0.0f}; // totally random!
 }
 
 std::optional<WorldPos> PathFindingDemo::GetMoveTarget() {
@@ -75,7 +75,7 @@ std::optional<WorldPos> PathFindingDemo::GetMoveTarget() {
 
   WorldPos next_player_pos = m_Path.front();
 
-  if (current_player_pos.distance(next_player_pos) > 1.0) {
+  if (current_player_pos.DistanceTo(next_player_pos) > 1.0) {
     // target not reached yet
     return next_player_pos;
   }
@@ -95,7 +95,7 @@ void PathFindingDemo::UpdatePlayerVelocity() {
   WorldPos velocity = WorldPos{};
   if (next_pos) {
     velocity = next_pos.value() - current_pos;
-    velocity.normalize();
+    velocity.Normalize();
     //LOG_DEBUG("I want to move to: ", next_pos.value(),
     //          ", velocity: ", velocity);
   }

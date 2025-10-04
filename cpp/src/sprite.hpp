@@ -14,7 +14,7 @@ class Sprite {
 public:
   Sprite();
   ~Sprite();
-  explicit Sprite(std::string path, WorldPos center = {0, 0});
+  explicit Sprite(std::string path, WorldPos center = WorldPos{});
 
   Sprite(const Sprite &) = delete;
   Sprite &operator=(const Sprite &) = delete;
@@ -28,7 +28,7 @@ public:
   WorldPos GetSize() const { return m_Size; }
   WorldPos GetCenter() const { return m_ImageCenter; }
 
-  void LoadImage(std::string path, WorldPos image_center = {0.0, 0.0});
+  void LoadImage(std::string path, WorldPos image_center = WorldPos{});
 
 private:
   static std::shared_ptr<SDL_Renderer> m_Renderer;

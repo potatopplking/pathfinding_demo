@@ -37,6 +37,12 @@ TEST(vec, equalEpsilon) {
   ASSERT_EQ(v1, v2);
 }
 
+TEST(vec, equalInt) {
+  ivec2 v1{1,2};
+  ivec2 v2{1,2};
+  ASSERT_EQ(v1, v2);
+}
+
 TEST(vec, nonEqualEpsilon) {
   // Test operator!=
   vec3 v1{1.0f, 2.0f, 3.0f};
