@@ -21,7 +21,6 @@ std::expected<void, std::string> UserInput::Init() { return {}; }
 
 const std::vector<UserAction> &UserInput::GetActions() {
   m_Actions.clear();
-  static WorldPos move_direction = {0.0f, 0.0f};
   SDL_Event event;
 
   while (SDL_PollEvent(&event)) {
