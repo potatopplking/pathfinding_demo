@@ -22,13 +22,13 @@ public:
   Window &operator=(Window &&) = delete;
 
   std::expected<void, std::string> Init();
-  void DrawSprite(const WorldPos &position, Sprite &s);
-  void DrawRect(const WorldPos &position, const WorldPos size, uint8_t R,
+  void DrawSprite(const WindowPos &position, Sprite &s);
+  void DrawRect(const WindowPos &position, const WindowPos size, uint8_t R,
                 uint8_t G, uint8_t B, uint8_t A);
   void ClearWindow();
   void Flush();
-  void DrawCircle(const WorldPos &position, float radius);
-  void DrawLine(const WorldPos &A, const WorldPos &B);
+  void DrawCircle(const WindowPos &position, float radius);
+  void DrawLine(const WindowPos &A, const WindowPos &B);
 
 private:
   uint32_t m_Width;

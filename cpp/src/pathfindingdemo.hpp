@@ -10,6 +10,7 @@
 #include "map.hpp"
 #include "user_input.hpp"
 #include "pathfinder/base.hpp"
+#include "camera.hpp"
 
 class PathFindingDemo {
 public:
@@ -24,6 +25,7 @@ public:
   std::shared_ptr<Player> GetPlayer() { return m_Player; }
   std::vector<std::shared_ptr<Entity>>& GetEntities() { return m_Entities; }
   const Map& GetMap() const { return m_Map; }
+  const Camera& GetCamera() const { return m_Camera; }
   const pathfinder::Path& GetPath() const { return m_Path; }
   bool IsExitRequested() const { return m_ExitRequested; }
 
@@ -37,6 +39,7 @@ public:
 private:
   bool m_ExitRequested = false;
   Map m_Map;
+  Camera m_Camera;
   std::vector<std::shared_ptr<Entity>> m_Entities;
   std::shared_ptr<Player> m_Player;
   pathfinder::Path m_Path;

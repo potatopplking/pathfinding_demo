@@ -11,8 +11,8 @@ class UserAction {
 public:
   enum class Type { NONE, EXIT, SET_MOVE_TARGET, SELECT_PATHFINDER };
 
-  UserAction() = default;
-  UserAction(Type t) : type(t) {}
+  UserAction() : type(Type::NONE), Argument{.number = 0} {}
+  UserAction(Type t) : type(t), Argument{.number = 0} {}
   UserAction(Type t, char key) : type(t), Argument{.key = key} {}
   UserAction(Type t, WorldPos v) : type(t), Argument{.position = v} {}
   UserAction(Type t, int arg) : type(t), Argument{.number = arg} {}
@@ -25,6 +25,9 @@ public:
     char key;
     int number;
   } Argument;
+
+  // TODO use std::variant
+  //std::variant<WorldPos, char, int> Argument;
 };
 
 class UserInput {

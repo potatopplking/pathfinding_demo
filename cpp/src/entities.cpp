@@ -5,7 +5,6 @@
 #include "log.hpp"
 #include "math.hpp"
 #include "sprite.hpp"
-#include "coorginates.hpp"
 
 Entity::Entity(WorldPos position) : m_Position(position) {
   LOG_DEBUG("spawning entity at position ", position);
