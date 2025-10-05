@@ -27,14 +27,19 @@ void GameLoop::Run() {
     for (size_t row = 0; row < tiles.size(); row++) {
       for (size_t col = 0; col < tiles[row].size(); col++) {
         const auto& camera = m_Game->GetCamera();
+        const auto& position = camera.WorldToWindow(
+          map.TileEdgeToWorld(
+            TilePos{static_cast<int32_t>(row), static_cast<int32_t>(col)}
+          )
+        );
+        const auto& size = camera.WorldToWindowSize(
+              map.GetTileSize()
+        );
         // LOG_DEBUG("Drawing rect (", row, ", ", col, ")");
         m_Window->DrawRect(
-            camera.WorldToWindow(
-              map.TileEdgeToWorld(
-                TilePos{static_cast<int32_t>(row), static_cast<int32_t>(col)}
-              )
-            ),
-            camera.WorldToWindow(map.GetTileSize()), tiles[row][col]->R, tiles[row][col]->G,
+            position,
+            size,
+            tiles[row][col]->R, tiles[row][col]->G,
             tiles[row][col]->B, tiles[row][col]->A);
       }
     }

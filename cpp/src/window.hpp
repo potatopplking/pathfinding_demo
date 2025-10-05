@@ -23,7 +23,7 @@ public:
 
   std::expected<void, std::string> Init();
   void DrawSprite(const WindowPos &position, Sprite &s);
-  void DrawRect(const WindowPos &position, const WindowPos size, uint8_t R,
+  void DrawRect(const WindowPos &position, const WindowSize size, uint8_t R,
                 uint8_t G, uint8_t B, uint8_t A);
   void ClearWindow();
   void Flush();

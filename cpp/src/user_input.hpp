@@ -9,25 +9,25 @@
 
 class UserAction {
 public:
-  enum class Type { NONE, EXIT, SET_MOVE_TARGET, SELECT_PATHFINDER };
+  enum class Type { NONE, EXIT, SET_MOVE_TARGET, SELECT_PATHFINDER, CAMERA_PAN, CAMERA_ZOOM };
 
   UserAction() : type(Type::NONE), Argument{.number = 0} {}
   UserAction(Type t) : type(t), Argument{.number = 0} {}
   UserAction(Type t, char key) : type(t), Argument{.key = key} {}
-  UserAction(Type t, WorldPos v) : type(t), Argument{.position = v} {}
+  UserAction(Type t, WindowPos v) : type(t), Argument{.position = v} {}
   UserAction(Type t, int arg) : type(t), Argument{.number = arg} {}
   ~UserAction() = default;
 
   Type type;
 
   union {
-    WorldPos position;
+    WindowPos position;
     char key;
     int number;
   } Argument;
 
   // TODO use std::variant
-  //std::variant<WorldPos, char, int> Argument;
+  //std::variant<WindowPos, char, int> Argument;
 };
 
 class UserInput {

@@ -5,12 +5,16 @@
 class Camera
 {
 public:
-  WindowPos WorldToWindow(WorldPos) const;
-  WorldPos WindowToWorld(WindowPos) const;
+  void Pan(const WorldPos& delta);
+  void Zoom(const WorldPos& delta);
+
+  WindowPos  WorldToWindow(WorldPos)       const;
+  WorldPos   WindowToWorld(WindowPos)      const;
+  WindowSize WorldToWindowSize(WorldSize)  const;
+  WorldSize  WindowToWorldSize(WindowSize) const;
 
 private:
   // TODO this should be replaced with a matrix
   float m_Zoom;
-  WorldPos m_RectCorner; // upper left corner (0,0) of the drawn regios
-
+  WorldPos m_Pan;
 };

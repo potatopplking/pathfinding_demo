@@ -110,7 +110,7 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions) {
       LOG_INFO("Exit requested");
       m_ExitRequested = true;
     } else if (action.type == UserAction::Type::SET_MOVE_TARGET) {
-      WorldPos wp = action.Argument.position;
+      WorldPos wp = m_Camera.WindowToWorld(action.Argument.position);
       LOG_INFO("Calculating path to target: ", wp);
       m_Path = m_PathFinder->CalculatePath(m_Player->GetPosition(), wp);
       LOG_INFO("Done, path node count: ", m_Path.size());
@@ -119,6 +119,11 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions) {
       PathFinderType type = static_cast<PathFinderType>(action.Argument.number);
       m_PathFinder = pathfinder::utils::create(type, (const Map*)&m_Map);
       LOG_INFO("Switched to path finding method: ", m_PathFinder->GetName());
+    } else if (action.type == UserAction::Type::CAMERA_PAN) {
+      const auto& window_pan = action.Argument.position;
+      WorldPos world_pan{window_pan.x(), window_pan.y()};
+      m_Camera.Pan(world_pan);
+      LOG_INFO("Camera pan delta: ", world_pan);
     }
   };
 }

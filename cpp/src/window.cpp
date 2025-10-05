@@ -84,7 +84,7 @@ void Window::DrawSprite(const WindowPos &position, Sprite &s) {
   SDL_RenderTexture(m_Renderer.get(), s.GetTexture(), nullptr, &rect);
 }
 
-void Window::DrawRect(const WindowPos &position, const WindowPos size, uint8_t R,
+void Window::DrawRect(const WindowPos &position, const WindowSize size, uint8_t R,
                       uint8_t G, uint8_t B, uint8_t A) {
   SDL_FRect rect = {position.x(), position.y(), size.x(), size.y()};
   SDL_SetRenderDrawColor(m_Renderer.get(), R, G, B, A);

@@ -25,8 +25,8 @@ public:
   WorldPos TileToWorld(TilePos p) const;
   WorldPos TileEdgeToWorld(TilePos p) const;
   TilePos WorldToTile(WorldPos p) const;
-
-  WorldPos GetTileSize() const;
+  
+  WorldSize GetTileSize() const;
   const Tile *GetTileAt(TilePos p) const;
   const Tile *GetTileAt(WorldPos p) const;
 

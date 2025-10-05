@@ -28,8 +28,7 @@ TilePos Map::WorldToTile(WorldPos p) const {
   return TilePos{static_cast<int32_t>(p.x() / TILE_SIZE), static_cast<int32_t>(p.y() / TILE_SIZE)};
 }
 
-// TODO this should probably use something like WorldSize or WorldVec to make the distinction clear
-WorldPos Map::GetTileSize() const { return WorldPos{TILE_SIZE, TILE_SIZE}; }
+WorldSize Map::GetTileSize() const { return WorldSize{TILE_SIZE, TILE_SIZE}; }
 
 const Tile *Map::GetTileAt(TilePos p) const {
   assert(IsTilePosValid(p));
