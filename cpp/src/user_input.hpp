@@ -7,6 +7,9 @@
 #include "log.hpp"
 #include "math.hpp"
 
+// Seems like SDL doesn't have named constants for mouse button 
+enum class MouseButton { LEFT = 1, MIDDLE, RIGHT };
+
 class UserAction {
 public:
   enum class Type { NONE, EXIT, SET_MOVE_TARGET, SELECT_PATHFINDER, CAMERA_PAN, CAMERA_ZOOM };

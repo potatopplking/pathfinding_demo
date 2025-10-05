@@ -59,16 +59,18 @@ const std::vector<UserAction> &UserInput::GetActions() {
       }
     } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
       SDL_MouseButtonEvent mouse_event = event.button;
-      if (mouse_event.button == 1) {
+      MouseButton button = static_cast<MouseButton>(mouse_event.button);
+      if (button == MouseButton::LEFT) {
         LOG_DEBUG("Mouse down: ", mouse_event.x, ", ", mouse_event.y);
         m_Actions.emplace_back(UserAction::Type::SET_MOVE_TARGET,
                                WindowPos{mouse_event.x, mouse_event.y});
-      } else if (mouse_event.button == 2) {
+      } else if (button == MouseButton::MIDDLE) {
         mouse_pan = true;
       }
     } else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
       SDL_MouseButtonEvent mouse_event = event.button;
-      if (mouse_event.button == 2) {
+      MouseButton button = static_cast<MouseButton>(mouse_event.button);
+      if (button == MouseButton::MIDDLE) {
         mouse_pan = false;
       }
     } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
