@@ -127,6 +127,15 @@ public:
     return a;
   }
 
+  vec& operator/=(float scalar)
+  {
+    vec& a = *this;
+    auto b = std::views::repeat(scalar);
+    std::ranges::transform(a.m_Array, b, a.m_Array.begin(), std::divides{});
+    // TODO check all of this, could be done better with views instead of ranges?
+    return a;
+  }
+
   //
   // Utility functions
   //

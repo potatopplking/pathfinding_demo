@@ -18,7 +18,8 @@ public:
   UserAction(Type t) : type(t), Argument{.number = 0} {}
   UserAction(Type t, char key) : type(t), Argument{.key = key} {}
   UserAction(Type t, WindowPos v) : type(t), Argument{.position = v} {}
-  UserAction(Type t, int arg) : type(t), Argument{.number = arg} {}
+  UserAction(Type t, int32_t arg) : type(t), Argument{.number = arg} {}
+  UserAction(Type t, float arg) : type(t), Argument{.float_number = arg} {}
   ~UserAction() = default;
 
   Type type;
@@ -26,7 +27,8 @@ public:
   union {
     WindowPos position;
     char key;
-    int number;
+    int32_t number;
+    float float_number;
   } Argument;
 
   // TODO use std::variant

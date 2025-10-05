@@ -6,7 +6,7 @@ class Camera
 {
 public:
   void Pan(const WorldPos& delta);
-  void Zoom(const WorldPos& delta);
+  void Zoom(float delta);
 
   WindowPos  WorldToWindow(WorldPos)       const;
   WorldPos   WindowToWorld(WindowPos)      const;
@@ -15,6 +15,6 @@ public:
 
 private:
   // TODO this should be replaced with a matrix
-  float m_Zoom;
+  float m_Zoom = 1.0f;
   WorldPos m_Pan;
 };

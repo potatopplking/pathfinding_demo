@@ -93,7 +93,8 @@ void PathFindingDemo::UpdatePlayerVelocity() {
   double tile_velocity_coeff = m_Map.GetTileVelocityCoeff(current_pos);
   auto next_pos = GetMoveTarget();
   WorldPos velocity = WorldPos{};
-  if (next_pos) {
+  if (next_pos)
+  {
     velocity = next_pos.value() - current_pos;
     velocity.Normalize();
     //LOG_DEBUG("I want to move to: ", next_pos.value(),
@@ -104,26 +105,40 @@ void PathFindingDemo::UpdatePlayerVelocity() {
   player->Update(time_delta);
 }
 
-void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions) {
-  for (const auto &action : actions) {
-    if (action.type == UserAction::Type::EXIT) {
+void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions)
+{
+  for (const auto &action : actions)
+  {
+    if (action.type == UserAction::Type::EXIT)
+    {
       LOG_INFO("Exit requested");
       m_ExitRequested = true;
-    } else if (action.type == UserAction::Type::SET_MOVE_TARGET) {
+    }
+    else if (action.type == UserAction::Type::SET_MOVE_TARGET)
+    {
       WorldPos wp = m_Camera.WindowToWorld(action.Argument.position);
       LOG_INFO("Calculating path to target: ", wp);
       m_Path = m_PathFinder->CalculatePath(m_Player->GetPosition(), wp);
       LOG_INFO("Done, path node count: ", m_Path.size());
-    } else if (action.type == UserAction::Type::SELECT_PATHFINDER) {
+    }
+    else if (action.type == UserAction::Type::SELECT_PATHFINDER)
+    {
       using namespace pathfinder;
       PathFinderType type = static_cast<PathFinderType>(action.Argument.number);
       m_PathFinder = pathfinder::utils::create(type, (const Map*)&m_Map);
       LOG_INFO("Switched to path finding method: ", m_PathFinder->GetName());
-    } else if (action.type == UserAction::Type::CAMERA_PAN) {
+    }
+    else if (action.type == UserAction::Type::CAMERA_PAN)
+    {
       const auto& window_pan = action.Argument.position;
       WorldPos world_pan{window_pan.x(), window_pan.y()};
       m_Camera.Pan(world_pan);
       LOG_INFO("Camera pan delta: ", world_pan);
+    }
+    else if (action.type == UserAction::Type::CAMERA_ZOOM)
+    {
+      m_Camera.Zoom(action.Argument.float_number);
+      LOG_INFO("Camera zoom: ", action.Argument.float_number);
     }
   };
 }

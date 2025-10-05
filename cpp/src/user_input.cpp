@@ -24,29 +24,42 @@ void UserInput::GetActions_mouse(const SDL_Event& event)
 {
   static bool mouse_pan = false;
 
-  if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-    SDL_MouseButtonEvent mouse_event = event.button;
-    MouseButton button = static_cast<MouseButton>(mouse_event.button);
-    if (button == MouseButton::LEFT) {
+  SDL_MouseButtonEvent mouse_event = event.button;
+  MouseButton button = static_cast<MouseButton>(mouse_event.button);
+
+  if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+  {
+    if (button == MouseButton::LEFT)
+    {
       LOG_DEBUG("Mouse down: ", mouse_event.x, ", ", mouse_event.y);
       m_Actions.emplace_back(UserAction::Type::SET_MOVE_TARGET,
                              WindowPos{mouse_event.x, mouse_event.y});
-    } else if (button == MouseButton::MIDDLE) {
+    }
+    else if (button == MouseButton::MIDDLE)
+    {
       mouse_pan = true;
     }
-  } else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
-    SDL_MouseButtonEvent mouse_event = event.button;
-    MouseButton button = static_cast<MouseButton>(mouse_event.button);
-    if (button == MouseButton::MIDDLE) {
+  }
+  else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+  {
+    if (button == MouseButton::MIDDLE)
+    {
       mouse_pan = false;
     }
-  } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
+  }
+  else if (event.type == SDL_EVENT_MOUSE_MOTION)
+  {
     SDL_MouseMotionEvent motion_event = event.motion;
-    if (mouse_pan) {
+    if (mouse_pan)
+    {
       m_Actions.emplace_back(UserAction::Type::CAMERA_PAN,
-                             WindowPos{motion_event.xrel, motion_event.yrel});
-      
+                             WindowPos{motion_event.xrel, motion_event.yrel});  
     }
+  }
+  else if(event.type == SDL_EVENT_MOUSE_WHEEL)
+  {
+    SDL_MouseWheelEvent mouse_wheel = event.wheel;
+    m_Actions.emplace_back(UserAction::Type::CAMERA_ZOOM, mouse_wheel.y);
   }
 }
 
