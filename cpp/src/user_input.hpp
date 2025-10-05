@@ -50,6 +50,6 @@ public:
 private:
   std::vector<UserAction> m_Actions;
 
-  void GetActions_kbd(const SDL_Event&);
+  void GetActions_keyboard(const SDL_Event&);
   void GetActions_mouse(const SDL_Event&);
 };

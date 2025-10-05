@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 #include "user_input.hpp"
 
@@ -49,7 +50,7 @@ void UserInput::GetActions_mouse(const SDL_Event& event)
   }
 }
 
-void UserInput::GetActions_kbd(const SDL_Event& event)
+void UserInput::GetActions_keyboard(const SDL_Event& event)
 {
       bool key_down = event.type == SDL_EVENT_KEY_DOWN ? true : false;
       SDL_KeyboardEvent kbd_event = event.key;
@@ -81,18 +82,31 @@ void UserInput::GetActions_kbd(const SDL_Event& event)
 }
 
 const std::vector<UserAction>& UserInput::GetActions() {
-  m_Actions.clear();
-  SDL_Event event;
+
+  static std::unordered_set<uint32_t> mouse_events = {
+    SDL_EVENT_MOUSE_MOTION,
+    SDL_EVENT_MOUSE_BUTTON_DOWN,
+    SDL_EVENT_MOUSE_BUTTON_UP,
+    SDL_EVENT_MOUSE_WHEEL,
+    SDL_EVENT_MOUSE_ADDED,
+    SDL_EVENT_MOUSE_REMOVED,
+  };
   
-  while (SDL_PollEvent(&event)) {
-    if (event.type == SDL_EVENT_KEY_DOWN
-        || event.type == SDL_EVENT_KEY_UP)
+  static std::unordered_set<uint32_t> keyboard_events = {
+    SDL_EVENT_KEY_DOWN,
+    SDL_EVENT_KEY_UP,
+  };
+    
+  SDL_Event event;
+  m_Actions.clear();
+
+  while (SDL_PollEvent(&event))
+  {
+    if (keyboard_events.contains(event.type))
     {
-      GetActions_kbd(event);
+      GetActions_keyboard(event);
     }
-    else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN
-        || event.type == SDL_EVENT_MOUSE_BUTTON_UP
-        || event.type == SDL_EVENT_MOUSE_MOTION)
+    else if (mouse_events.contains(event.type))
     {
       GetActions_mouse(event);       
     }
