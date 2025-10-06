@@ -9,6 +9,7 @@
 #include <numeric>
 #include <ranges>
 #include <utility>
+#include <functional>
 
 template <typename T>
   requires std::floating_point<T>
