@@ -8,7 +8,7 @@
 
 void Camera::Pan(const WorldPos& delta)
 {
-  m_Pan += delta;
+  m_Pan += (delta / m_Zoom);
 }
 
 void Camera::Zoom(float delta)
@@ -35,10 +35,11 @@ WindowSize Camera::WorldToWindowSize(WorldSize world) const
 {
   const auto& v = world;
   // no zoom yet, just pass-through
-  return WindowSize{v[0], v[1]};
+  return WindowSize{v[0], v[1]} * m_Zoom;
 }
 
 WorldSize Camera::WindowToWorldSize(WindowSize window) const
 {
+    window /= m_Zoom;
     return WorldSize{window[0], window[1]};
 }
