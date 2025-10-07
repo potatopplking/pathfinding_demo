@@ -2,13 +2,21 @@
 
 #include <iostream>
 
-#define LOG_CRITICAL(...) Log::critical(__PRETTY_FUNCTION__, ": ", __VA_ARGS__)
-#define LOG_ERROR(...) Log::error(__PRETTY_FUNCTION__, ": ", __VA_ARGS__)
-#define LOG_WARNING(...) Log::warning(__PRETTY_FUNCTION__, ": ", __VA_ARGS__)
-#define LOG_INFO(...) Log::info(__PRETTY_FUNCTION__, ": ", __VA_ARGS__)
-#define LOG_DEBUG(...) Log::debug(__PRETTY_FUNCTION__, ": ", __VA_ARGS__)
+#if defined(__GNUC__) || defined(__clang__)
+#   define PRETTY_FUNC __PRETTY_FUNCTION__
+#elif defined(_MSC_VER)
+#   define PRETTY_FUNC __FUNCTION__
+#else
+#   define PRETTY_FUNC __func__
+#endif
+
+#define LOG_CRITICAL(...) Log::critical(PRETTY_FUNC, ": ", __VA_ARGS__)
+#define LOG_ERROR(...) Log::error(PRETTY_FUNC, ": ", __VA_ARGS__)
+#define LOG_WARNING(...) Log::warning(PRETTY_FUNC, ": ", __VA_ARGS__)
+#define LOG_INFO(...) Log::info(PRETTY_FUNC, ": ", __VA_ARGS__)
+#define LOG_DEBUG(...) Log::debug(PRETTY_FUNC, ": ", __VA_ARGS__)
 #define LOG_PROFILING_DEBUG(...)                                               \
-  Log::profiling_debug(__PRETTY_FUNCTION__, ": ", __VA_ARGS__)
+  Log::profiling_debug(PRETTY_FUNC, ": ", __VA_ARGS__)
 
 namespace Log {
 enum class LevelTypes {
