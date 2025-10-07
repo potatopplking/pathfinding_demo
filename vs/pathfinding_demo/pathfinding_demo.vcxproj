@@ -19,12 +19,44 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\cpp\src\camera.cpp" />
+    <ClCompile Include="..\..\cpp\src\entities.cpp" />
+    <ClCompile Include="..\..\cpp\src\gameloop.cpp" />
     <ClCompile Include="..\..\cpp\src\main.cpp" />
+    <ClCompile Include="..\..\cpp\src\map.cpp" />
+    <ClCompile Include="..\..\cpp\src\pathfinder\astar.cpp" />
+    <ClCompile Include="..\..\cpp\src\pathfinder\base.cpp" />
+    <ClCompile Include="..\..\cpp\src\pathfinder\bfs.cpp" />
+    <ClCompile Include="..\..\cpp\src\pathfinder\dijkstra.cpp" />
+    <ClCompile Include="..\..\cpp\src\pathfinder\gbfs.cpp" />
+    <ClCompile Include="..\..\cpp\src\pathfinder\linear.cpp" />
+    <ClCompile Include="..\..\cpp\src\pathfinder\utils.cpp" />
+    <ClCompile Include="..\..\cpp\src\pathfindingdemo.cpp" />
+    <ClCompile Include="..\..\cpp\src\sprite.cpp" />
+    <ClCompile Include="..\..\cpp\src\tile.cpp" />
+    <ClCompile Include="..\..\cpp\src\user_input.cpp" />
+    <ClCompile Include="..\..\cpp\src\window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\cpp\src\array.hpp" />
+    <ClInclude Include="..\..\cpp\src\camera.hpp" />
+    <ClInclude Include="..\..\cpp\src\entities.hpp" />
+    <ClInclude Include="..\..\cpp\src\gameloop.hpp" />
     <ClInclude Include="..\..\cpp\src\log.hpp" />
+    <ClInclude Include="..\..\cpp\src\map.hpp" />
     <ClInclude Include="..\..\cpp\src\math.hpp" />
+    <ClInclude Include="..\..\cpp\src\pathfinder\astar.hpp" />
+    <ClInclude Include="..\..\cpp\src\pathfinder\base.hpp" />
+    <ClInclude Include="..\..\cpp\src\pathfinder\bfs.hpp" />
+    <ClInclude Include="..\..\cpp\src\pathfinder\dijkstra.hpp" />
+    <ClInclude Include="..\..\cpp\src\pathfinder\gbfs.hpp" />
+    <ClInclude Include="..\..\cpp\src\pathfinder\linear.hpp" />
+    <ClInclude Include="..\..\cpp\src\pathfinder\utils.hpp" />
+    <ClInclude Include="..\..\cpp\src\pathfindingdemo.hpp" />
+    <ClInclude Include="..\..\cpp\src\sprite.hpp" />
+    <ClInclude Include="..\..\cpp\src\tile.hpp" />
+    <ClInclude Include="..\..\cpp\src\user_input.hpp" />
+    <ClInclude Include="..\..\cpp\src\window.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\glew\build\vc15\glew_static.vcxproj">
@@ -96,7 +128,7 @@
       <PreprocessorDefinitions>GLEW_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\glew\include;..\SDL\include;..\SDL_image\include;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\glew\include;..\SDL\include;..\SDL_image\include;..\;..\..\cpp\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -114,7 +146,7 @@
       <PreprocessorDefinitions>GLEW_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\glew\include;..\SDL\include;..\SDL_image\include;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\glew\include;..\SDL\include;..\SDL_image\include;..\;..\..\cpp\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,7 +164,7 @@
       <PreprocessorDefinitions>GLEW_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\glew\include;..\SDL\include;..\SDL_image\include;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\glew\include;..\SDL\include;..\SDL_image\include;..\;..\..\cpp\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -150,7 +182,7 @@
       <PreprocessorDefinitions>GLEW_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\glew\include;..\SDL\include;..\SDL_image\include;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\glew\include;..\SDL\include;..\SDL_image\include;..\;..\..\cpp\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
