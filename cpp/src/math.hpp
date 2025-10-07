@@ -38,6 +38,10 @@ public:
     requires(std::same_as<ArgsT, T> && ...) && (sizeof...(ArgsT) == N)
   vec(ArgsT... args) : m_Array{args...} {}
 
+  //
+  // Access to elements & data
+  //
+
   const T &operator[](size_t index) const {
     // we leave run-time checks to the underlying std::array
     return m_Array[index];
@@ -56,6 +60,8 @@ public:
     os << ")";
     return os;
   }
+
+  std::array<T,N>& Data() { return m_Array; }
 
   //
   // binary operators
@@ -186,6 +192,19 @@ public:
     return tmp;
   }
 
+  static T DotProduct(const vec& a, const vec& b)
+  {
+    return std::inner_product(
+        a.m_Array.begin(), a.m_Array.end(), b.m_Array.begin(), 
+        T{}, std::plus{}, std::multiplies{});
+  }
+
+  T DotProduct(const vec& b) const
+  {
+    const auto& a = *this;
+    return DotProduct(a, b);
+  }
+
   //
   // Helpers
   //
@@ -264,7 +283,6 @@ using WorldSize = vec<float, 2, WorldSizeTag>;
 using WindowSize = vec<float, 2, WindowSizeTag>;
 using TileSize = vec<int32_t, 2, TileSizeTag>;
 
-
 //
 // Utils
 //
@@ -277,121 +295,97 @@ struct TilePosHash {
   }
 };
 
-// old stuff - TODO delete
+//
+// Matrix
+//
 
-// constexpr double EQUALITY_LIMIT = 1e-6;
-// template <typename T> struct Vec2D {
-// public:
-//   Vec2D() = default;
-//   ~Vec2D() = default;
-//
-//   template <typename U>
-//   Vec2D(Vec2D<U> other) {
-//     this->x = static_cast<T>(other.x);
-//     this->y = static_cast<T>(other.y);
-//   }
-//
-//   Vec2D& operator+=(const Vec2D &other) {
-//     x += other.x;
-//     y += other.y;
-//     return *this;
-//   }
-//
-//   template <typename U>
-//   requires std::is_arithmetic_v<U>
-//   Vec2D& operator/=(U k) {
-//     this->x /= static_cast<T>(k);
-//     this->y /= static_cast<T>(k);
-//     return *this;
-//   }
-//
-//   friend Vec2D operator+(const Vec2D &a, const Vec2D &b) {
-//     return Vec2D{a.x + b.x, a.y + b.y};
-//   }
-//
-//   friend Vec2D operator-(const Vec2D &a, const Vec2D &b) {
-//     return Vec2D{a.x - b.x, a.y - b.y};
-//   }
-//
-//   template <typename U>
-//     requires std::is_arithmetic_v<U>
-//   friend Vec2D operator*(U k, const Vec2D &v)
-//   {
-//     return Vec2D{k * v.x, k * v.y};
-//   }
-//
-//   template <typename U>
-//     requires std::is_arithmetic_v<U>
-//   friend Vec2D operator/(const Vec2D &v, U k)
-//   {
-//     return Vec2D{v.x / k, v.y / k};
-//   }
-//
-//   friend bool operator==(const Vec2D &a, const Vec2D &b) {
-//     if constexpr (std::is_integral_v<T>) {
-//       return a.x == b.x && a.y == b.y;
-//     } else if constexpr (std::is_floating_point_v<T>) {
-//       return a.distance(b) < EQUALITY_LIMIT;
-//     } else {
-//       static_assert("Unhandled comparison");
-//     }
-//   }
-//
-//   Vec2D operator*(float b) const { return Vec2D{b * x, b * y}; }
-//
-//   T distance_squared(const Vec2D &other) const {
-//     T dx = x - other.x;
-//     T dy = y - other.y;
-//     return dx * dx + dy * dy;
-//   }
-//
-//   T distance(const Vec2D &other) const
-//     requires std::floating_point<T>
-//   {
-//     return sqrt(distance_squared(other));
-//   }
-//
-//   void normalize()
-//     requires std::floating_point<T>
-//   {
-//     auto length = sqrt(x * x + y * y);
-//     if (length < EQUALITY_LIMIT) {
-//       x = y = 0;
-//     } else {
-//       x /= length;
-//       y /= length;
-//     }
-//   }
-//
-//   Vec2D normalized()
-//     requires std::floating_point<T>
-//   {
-//     Vec2D v(*this);
-//     v.normalize();
-//     return v;
-//   }
-//
-//   Vec2D orthogonal() const
-//   {
-//     Vec2D v(*this);
-//
-//     std::swap(v.x, v.y);
-//     v.x = -v.x;
-//     return v;
-//   }
-//
-//   template <typename U> Vec2D(std::initializer_list<U> list) {
-//     assert(list.size() == 2);
-//     auto first_element = *list.begin();
-//     auto second_element = *(list.begin() + 1);
-//     x = static_cast<T>(first_element);
-//     y = static_cast<T>(second_element);
-//   }
-//
-//   T x, y;
-//
-//   friend std::ostream &operator<<(std::ostream &os, const Vec2D &obj) {
-//     os << "( " << obj.x << ", " << obj.y << ")";
-//     return os;
-//   }
-// };
+// Collumn major square matrix
+template <typename T, size_t N, typename Tag = Any>
+class Matrix {
+
+using vec_type = vec<T, N, Tag>;
+
+public:
+    Matrix() = default;
+
+    // Initialization using flat array of N*N elements
+    template <typename Tarr, size_t M>
+    requires (M == N*N && std::same_as<Tarr, T>)
+    Matrix(std::array<Tarr,M> array) : m_Array{}
+    {
+        std::size_t idx = 0;
+        for (auto col : array | std::views::chunk(N))
+        {
+            std::ranges::copy(col, m_Array[idx++].Data().begin());
+        }
+    }
+
+    const vec_type& operator[](size_t index) const { return m_Array[index]; }
+    vec_type& operator[](size_t index) { return m_Array[index]; }
+
+    friend std::ostream &operator<<(std::ostream &os, const Matrix &obj)
+    {
+        os << "( ";
+        for (const auto &element : obj.m_Array) {
+        os << element << " ";
+        }
+        os << ")";
+        return os;
+    }
+
+
+    friend Matrix operator+(const Matrix& A, const Matrix& B)
+    {
+        Matrix C;
+        std::ranges::transform(A.m_Array, B.m_Array, C.m_Array.begin(), std::plus{});
+        return C;
+    }
+
+    friend Matrix operator-(const Matrix& A, const Matrix& B)
+    {
+        Matrix C;
+        std::ranges::transform(A.m_Array, B.m_Array, C.m_Array.begin(), std::minus{});
+        return C;
+    }
+
+    friend Matrix operator*(const Matrix& A, const Matrix& B)
+    {
+        Matrix C;
+
+        for (size_t i = 0; i < N; i++)
+        {
+            for (size_t j = 0; j < N; j++)
+            {
+                T sum = 0;
+                for (size_t k = 0; k < N; ++k) sum += A[i][k] * B[k][j];
+                C[i][j] = sum;
+            }
+        }
+        return C;
+    }
+
+    friend vec_type operator*(const Matrix& A, const vec_type& b)
+    {
+        // we assume that b is row vector
+        vec_type c;
+        for (size_t i = 0; i < N; i++)
+        {
+            c[i] = b.DotProduct(A[i]);
+        }
+        return c;
+    }
+
+    static constexpr Matrix Eye()
+    {
+        Matrix E;
+        for (size_t i = 0; i < N; i++)
+        {
+            E[i][i] = T{1};
+        }
+        return E;
+    }
+
+
+private:
+    std::array<vec_type, N> m_Array;
+};
