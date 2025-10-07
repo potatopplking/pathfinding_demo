@@ -55,7 +55,7 @@ void GameLoop::Run() {
     // draw all the entities (player etc)
     for (auto &entity : m_Game->GetEntities()) {
       const auto& camera = m_Game->GetCamera();
-      m_Window->DrawSprite(camera.WorldToWindow(entity->GetPosition()), entity->GetSprite());
+      m_Window->DrawSprite(camera.WorldToWindow(entity->GetPosition()), entity->GetSprite(), camera.GetZoom());
     }
     
     m_Window->Flush();

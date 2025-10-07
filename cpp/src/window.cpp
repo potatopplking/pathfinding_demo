@@ -76,9 +76,9 @@ Window::~Window() {
   LOG_DEBUG(".");
 }
 
-void Window::DrawSprite(const WindowPos &position, Sprite &s) {
-  WorldPos size = s.GetSize();
-  WorldPos img_center = s.GetCenter();
+void Window::DrawSprite(const WindowPos &position, Sprite &s, float scale) {
+  WorldSize size = s.GetSize() * scale;
+  WorldPos img_center = s.GetCenter() * scale;
   SDL_FRect rect = {position.x() - img_center.x(), position.y() - img_center.y(),
                     size.x(), size.y()};
   SDL_RenderTexture(m_Renderer.get(), s.GetTexture(), nullptr, &rect);

@@ -8,6 +8,9 @@ public:
   void Pan(const WorldPos& delta);
   void Zoom(float delta);
 
+  WorldPos GetPan() const { return m_Pan; }
+  float GetZoom() const { return m_Zoom; }
+
   WindowPos  WorldToWindow(WorldPos)       const;
   WorldPos   WindowToWorld(WindowPos)      const;
   WindowSize WorldToWindowSize(WorldSize)  const;
