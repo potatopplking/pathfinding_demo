@@ -11,6 +11,12 @@
 #include <utility>
 #include <functional>
 
+#ifdef _WIN32
+#include <numbers>
+#define M_PI std::numbers::pi
+// TODO use std::numbers::pi instead of M_PI
+#endif
+
 template <typename T>
   requires std::floating_point<T>
 static inline bool equalEpsilon(const T &a, const T &b) {
