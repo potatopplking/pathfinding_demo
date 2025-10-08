@@ -430,6 +430,266 @@ TEST(vec, ChainedOperations) {
   ASSERT_FLOAT_EQ(a[1], 3.0f);
 }
 
+TEST(Matrix, DefaultConstruction) {
+  // Test that default-constructed matrix has all elements equal to zero
+  Matrix<float, 2> m1;
+  ASSERT_FLOAT_EQ(m1[0][0], 0.0f);
+  ASSERT_FLOAT_EQ(m1[0][1], 0.0f);
+  ASSERT_FLOAT_EQ(m1[1][0], 0.0f);
+  ASSERT_FLOAT_EQ(m1[1][1], 0.0f);
+}
+
+TEST(Matrix, ArrayConstruction) {
+  // Test construction from array (column major)
+  Matrix<float, 2> m1(std::array<float, 4>{1.0f, 2.0f, 3.0f, 4.0f});
+  
+  // Column 0: [1, 2]
+  ASSERT_FLOAT_EQ(m1[0][0], 1.0f);
+  ASSERT_FLOAT_EQ(m1[0][1], 2.0f);
+  
+  // Column 1: [3, 4]
+  ASSERT_FLOAT_EQ(m1[1][0], 3.0f);
+  ASSERT_FLOAT_EQ(m1[1][1], 4.0f);
+  
+  // Test with 3x3 matrix
+  Matrix<int, 3> m2(std::array<int, 9>{1, 2, 3, 4, 5, 6, 7, 8, 9});
+  
+  // Column 0: [1, 2, 3]
+  ASSERT_EQ(m2[0][0], 1);
+  ASSERT_EQ(m2[0][1], 2);
+  ASSERT_EQ(m2[0][2], 3);
+  
+  // Column 1: [4, 5, 6]
+  ASSERT_EQ(m2[1][0], 4);
+  ASSERT_EQ(m2[1][1], 5);
+  ASSERT_EQ(m2[1][2], 6);
+  
+  // Column 2: [7, 8, 9]
+  ASSERT_EQ(m2[2][0], 7);
+  ASSERT_EQ(m2[2][1], 8);
+  ASSERT_EQ(m2[2][2], 9);
+}
+
+TEST(Matrix, ElementAccess) {
+  // Test element access (both const and non-const)
+  Matrix<float, 2> m1(std::array<float, 4>{1.0f, 2.0f, 3.0f, 4.0f});
+  
+  // Test const access
+  const Matrix<float, 2>& const_ref = m1;
+  ASSERT_FLOAT_EQ(const_ref[0][0], 1.0f);
+  ASSERT_FLOAT_EQ(const_ref[1][1], 4.0f);
+  
+  // Test non-const access and modification
+  m1[0][0] = 10.0f;
+  m1[1][1] = 40.0f;
+  
+  ASSERT_FLOAT_EQ(m1[0][0], 10.0f);
+  ASSERT_FLOAT_EQ(m1[1][1], 40.0f);
+  
+  // Verify other elements unchanged
+  ASSERT_FLOAT_EQ(m1[0][1], 2.0f);
+  ASSERT_FLOAT_EQ(m1[1][0], 3.0f);
+}
+
+TEST(Matrix, Addition) {
+  // Test matrix addition
+  Matrix<float, 2> m1(std::array<float, 4>{1.0f, 2.0f, 3.0f, 4.0f});
+  Matrix<float, 2> m2(std::array<float, 4>{5.0f, 6.0f, 7.0f, 8.0f});
+  
+  Matrix<float, 2> result = m1 + m2;
+  
+  ASSERT_FLOAT_EQ(result[0][0], 6.0f);  // 1 + 5
+  ASSERT_FLOAT_EQ(result[0][1], 8.0f);  // 2 + 6
+  ASSERT_FLOAT_EQ(result[1][0], 10.0f); // 3 + 7
+  ASSERT_FLOAT_EQ(result[1][1], 12.0f); // 4 + 8
+  
+  // Test that original matrices are unchanged
+  ASSERT_FLOAT_EQ(m1[0][0], 1.0f);
+  ASSERT_FLOAT_EQ(m1[1][1], 4.0f);
+  ASSERT_FLOAT_EQ(m2[0][0], 5.0f);
+  ASSERT_FLOAT_EQ(m2[1][1], 8.0f);
+  
+  // Test with integer matrices
+  Matrix<int, 2> im1(std::array<int, 4>{1, 2, 3, 4});
+  Matrix<int, 2> im2(std::array<int, 4>{10, 20, 30, 40});
+  Matrix<int, 2> iresult = im1 + im2;
+  
+  ASSERT_EQ(iresult[0][0], 11);
+  ASSERT_EQ(iresult[0][1], 22);
+  ASSERT_EQ(iresult[1][0], 33);
+  ASSERT_EQ(iresult[1][1], 44);
+}
+
+TEST(Matrix, Subtraction) {
+  // Test matrix subtraction
+  Matrix<float, 2> m1(std::array<float, 4>{10.0f, 8.0f, 6.0f, 4.0f});
+  Matrix<float, 2> m2(std::array<float, 4>{1.0f, 2.0f, 3.0f, 4.0f});
+  
+  Matrix<float, 2> result = m1 - m2;
+  
+  ASSERT_FLOAT_EQ(result[0][0], 9.0f);  // 10 - 1
+  ASSERT_FLOAT_EQ(result[0][1], 6.0f);  // 8 - 2
+  ASSERT_FLOAT_EQ(result[1][0], 3.0f);  // 6 - 3
+  ASSERT_FLOAT_EQ(result[1][1], 0.0f);  // 4 - 4
+  
+  // Test that original matrices are unchanged
+  ASSERT_FLOAT_EQ(m1[0][0], 10.0f);
+  ASSERT_FLOAT_EQ(m1[1][1], 4.0f);
+  ASSERT_FLOAT_EQ(m2[0][0], 1.0f);
+  ASSERT_FLOAT_EQ(m2[1][1], 4.0f);
+  
+  // Test subtraction resulting in negative values
+  Matrix<float, 2> m3(std::array<float, 4>{1.0f, 2.0f, 3.0f, 4.0f});
+  Matrix<float, 2> m4(std::array<float, 4>{5.0f, 6.0f, 7.0f, 8.0f});
+  Matrix<float, 2> negative_result = m3 - m4;
+  
+  ASSERT_FLOAT_EQ(negative_result[0][0], -4.0f);
+  ASSERT_FLOAT_EQ(negative_result[0][1], -4.0f);
+  ASSERT_FLOAT_EQ(negative_result[1][0], -4.0f);
+  ASSERT_FLOAT_EQ(negative_result[1][1], -4.0f);
+}
+
+TEST(Matrix, MatrixMultiplication) {
+  // Test 2x2 matrix multiplication
+  Matrix<float, 2> m1(std::array<float, 4>{1.0f, 2.0f, 3.0f, 4.0f});
+  Matrix<float, 2> m2(std::array<float, 4>{5.0f, 6.0f, 7.0f, 8.0f});
+  
+  Matrix<float, 2> result = m1 * m2;
+  
+  // m1 = [1 3]    m2 = [5 7]    result = [1*5+3*6  1*7+3*8] = [23 31]
+  //      [2 4]         [6 8]             [2*5+4*6  2*7+4*8]   [34 46]
+  
+  ASSERT_FLOAT_EQ(result[0][0], 23.0f);  // 1*5 + 3*6 = 23
+  ASSERT_FLOAT_EQ(result[0][1], 34.0f);  // 2*5 + 4*6 = 34
+  ASSERT_FLOAT_EQ(result[1][0], 31.0f);  // 1*7 + 3*8 = 31
+  ASSERT_FLOAT_EQ(result[1][1], 46.0f);  // 2*7 + 4*8 = 46
+  
+  // Test identity property: I * m = m
+  Matrix<float, 2> identity = Matrix<float, 2>::Eye();
+  Matrix<float, 2> identity_result = identity * m1;
+  
+  ASSERT_FLOAT_EQ(identity_result[0][0], m1[0][0]);
+  ASSERT_FLOAT_EQ(identity_result[0][1], m1[0][1]);
+  ASSERT_FLOAT_EQ(identity_result[1][0], m1[1][0]);
+  ASSERT_FLOAT_EQ(identity_result[1][1], m1[1][1]);
+  
+  // Test with 3x3 matrices
+  Matrix<int, 3> im1(std::array<int, 9>{1, 0, 0, 0, 1, 0, 0, 0, 1}); // Identity
+  Matrix<int, 3> im2(std::array<int, 9>{1, 2, 3, 4, 5, 6, 7, 8, 9});
+  Matrix<int, 3> iresult = im1 * im2;
+  
+  // Identity * matrix = matrix
+  ASSERT_EQ(iresult[0][0], 1);
+  ASSERT_EQ(iresult[0][1], 2);
+  ASSERT_EQ(iresult[0][2], 3);
+  ASSERT_EQ(iresult[1][0], 4);
+  ASSERT_EQ(iresult[1][1], 5);
+  ASSERT_EQ(iresult[1][2], 6);
+  ASSERT_EQ(iresult[2][0], 7);
+  ASSERT_EQ(iresult[2][1], 8);
+  ASSERT_EQ(iresult[2][2], 9);
+}
+
+TEST(Matrix, MatrixVectorMultiplication) {
+  // Test matrix-vector multiplication
+  Matrix<float, 2> m1(std::array<float, 4>{1.0f, 2.0f, 3.0f, 4.0f});
+  vec<float, 2> v1(2.0f, 3.0f);
+  
+  vec<float, 2> result = m1 * v1;
+  
+  // m1 = [1 3]    v1 = [2]    result = [1*2+3*3] = [11]
+  //      [2 4]         [3]             [2*2+4*3]   [16]
+  
+  ASSERT_FLOAT_EQ(result[0], 11.0f);  // 1*2 + 3*3 = 11
+  ASSERT_FLOAT_EQ(result[1], 16.0f);  // 2*2 + 4*3 = 16
+  
+  // Test with 3x3 matrix and 3D vector
+  Matrix<int, 3> im1(std::array<int, 9>{1, 0, 0, 0, 1, 0, 0, 0, 1}); // Identity
+  vec<int, 3> iv1(5, 10, 15);
+  
+  vec<int, 3> iresult = im1 * iv1;
+  
+  // Identity * vector = vector
+  ASSERT_EQ(iresult[0], 5);
+  ASSERT_EQ(iresult[1], 10);
+  ASSERT_EQ(iresult[2], 15);
+  
+  // Test that original matrix and vector are unchanged
+  ASSERT_FLOAT_EQ(m1[0][0], 1.0f);
+  ASSERT_FLOAT_EQ(v1[0], 2.0f);
+  ASSERT_FLOAT_EQ(v1[1], 3.0f);
+}
+
+TEST(Matrix, EyeIdentityMatrix) {
+  // Test 2x2 identity matrix
+  Matrix<float, 2> eye2 = Matrix<float, 2>::Eye();
+  
+  ASSERT_FLOAT_EQ(eye2[0][0], 1.0f);
+  ASSERT_FLOAT_EQ(eye2[0][1], 0.0f);
+  ASSERT_FLOAT_EQ(eye2[1][0], 0.0f);
+  ASSERT_FLOAT_EQ(eye2[1][1], 1.0f);
+  
+  // Test 3x3 identity matrix
+  Matrix<int, 3> eye3 = Matrix<int, 3>::Eye();
+  
+  for (size_t i = 0; i < 3; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      if (i == j) {
+        ASSERT_EQ(eye3[i][j], 1);
+      } else {
+        ASSERT_EQ(eye3[i][j], 0);
+      }
+    }
+  }
+  
+  // Test 4x4 identity matrix
+  Matrix<double, 4> eye4 = Matrix<double, 4>::Eye();
+  
+  for (size_t i = 0; i < 4; ++i) {
+    for (size_t j = 0; j < 4; ++j) {
+      if (i == j) {
+        ASSERT_DOUBLE_EQ(eye4[i][j], 1.0);
+      } else {
+        ASSERT_DOUBLE_EQ(eye4[i][j], 0.0);
+      }
+    }
+  }
+}
+
+TEST(Matrix, LogPrint) {
+  // Test that logger can print matrices of different types and sizes
+  Matrix<float, 2> m2(std::array<float, 4>{1.1f, 2.2f, 3.3f, 4.4f});
+  Matrix<int, 3> m3(std::array<int, 9>{1, 2, 3, 4, 5, 6, 7, 8, 9});
+  Matrix<double, 2> dm2(std::array<double, 4>{1.5, 2.5, 3.5, 4.5});
+  
+  LOG_DEBUG("Matrix<float, 2>  ", m2);
+  LOG_DEBUG("Matrix<int, 3>    ", m3);
+  LOG_DEBUG("Matrix<double, 2> ", dm2);
+}
+
+TEST(Matrix, ChainedOperations) {
+  // Test chaining matrix operations
+  Matrix<float, 2> m1(std::array<float, 4>{1.0f, 2.0f, 3.0f, 4.0f});
+  Matrix<float, 2> m2(std::array<float, 4>{1.0f, 1.0f, 1.0f, 1.0f});
+  Matrix<float, 2> m3(std::array<float, 4>{2.0f, 0.0f, 0.0f, 2.0f});
+  
+  // Test (m1 + m2) * m3
+  Matrix<float, 2> result = (m1 + m2) * m3;
+  
+  // m1 + m2 = [2 4]    m3 = [2 0]    result = [4  8]
+  //           [3 5]          [0 2]             [6 10]
+  
+  ASSERT_FLOAT_EQ(result[0][0], 4.0f);
+  ASSERT_FLOAT_EQ(result[0][1], 6.0f);
+  ASSERT_FLOAT_EQ(result[1][0], 8.0f);
+  ASSERT_FLOAT_EQ(result[1][1], 10.0f);
+  
+  // Test that original matrices are unchanged
+  ASSERT_FLOAT_EQ(m1[0][0], 1.0f);
+  ASSERT_FLOAT_EQ(m2[0][0], 1.0f);
+  ASSERT_FLOAT_EQ(m3[0][0], 2.0f);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
