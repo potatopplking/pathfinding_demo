@@ -26,10 +26,20 @@ void GameLoop::Run() {
     const auto &tiles = map.GetMapTiles();
     for (size_t row = 0; row < tiles.size(); row++) {
       for (size_t col = 0; col < tiles[row].size(); col++) {
+        const auto& camera = m_Game->GetCamera();
+        const auto& position = camera.WorldToWindow(
+          map.TileEdgeToWorld(
+            TilePos{static_cast<int32_t>(row), static_cast<int32_t>(col)}
+          )
+        );
+        const auto& size = camera.WorldToWindowSize(
+              map.GetTileSize()
+        );
         // LOG_DEBUG("Drawing rect (", row, ", ", col, ")");
         m_Window->DrawRect(
-            map.TileEdgeToWorld(TilePos{row, col}),
-            map.GetTileSize(), tiles[row][col]->R, tiles[row][col]->G,
+            position,
+            size,
+            tiles[row][col]->R, tiles[row][col]->G,
             tiles[row][col]->B, tiles[row][col]->A);
       }
     }
@@ -37,13 +47,15 @@ void GameLoop::Run() {
     // draw the path, if it exists
     WorldPos start_pos = m_Game->GetPlayer()->GetPosition();
     for (const auto& next_pos: m_Game->GetPath()) {
-      m_Window->DrawLine(start_pos, next_pos);
+      const auto& camera = m_Game->GetCamera();
+      m_Window->DrawLine(camera.WorldToWindow(start_pos), camera.WorldToWindow(next_pos));
       start_pos = next_pos;
     }
 
     // draw all the entities (player etc)
     for (auto &entity : m_Game->GetEntities()) {
-      m_Window->DrawSprite(entity->GetPosition(), entity->GetSprite());
+      const auto& camera = m_Game->GetCamera();
+      m_Window->DrawSprite(camera.WorldToWindow(entity->GetPosition()), entity->GetSprite(), camera.GetZoom());
     }
     
     m_Window->Flush();

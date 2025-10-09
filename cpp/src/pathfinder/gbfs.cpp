@@ -11,7 +11,7 @@ namespace pathfinder {
 
 float GBFS::Heuristic(const TilePos& a, const TilePos& b)
 {
-    return static_cast<float>(std::abs(a.x- b.x) + std::abs(a.y - b.y));
+    return static_cast<float>(std::abs(a.x() - b.x()) + std::abs(a.y() - b.y()));
 }
 
 Path GBFS::CalculatePath(WorldPos start_world, WorldPos end_world)

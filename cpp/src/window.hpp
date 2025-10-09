@@ -22,19 +22,19 @@ public:
   Window &operator=(Window &&) = delete;
 
   std::expected<void, std::string> Init();
-  void DrawSprite(const WorldPos &position, Sprite &s);
-  void DrawRect(const WorldPos &position, const WorldPos size, uint8_t R,
+  void DrawSprite(const WindowPos &position, Sprite &s, float scale = 1.0f);
+  void DrawRect(const WindowPos &position, const WindowSize size, uint8_t R,
                 uint8_t G, uint8_t B, uint8_t A);
   void ClearWindow();
   void Flush();
-  void DrawCircle(const WorldPos &position, float radius);
-  void DrawLine(const WorldPos &A, const WorldPos &B);
-
-  std::shared_ptr<SDL_Renderer> m_Renderer = nullptr;
-  SDL_Window *m_Window;
-  SDL_GLContext m_Context;
+  void DrawCircle(const WindowPos &position, float radius);
+  void DrawLine(const WindowPos &A, const WindowPos &B);
 
 private:
   uint32_t m_Width;
   uint32_t m_Height;
+  std::shared_ptr<SDL_Renderer> m_Renderer = nullptr;
+  SDL_Window *m_Window;
+  SDL_GLContext m_Context;
+
 };

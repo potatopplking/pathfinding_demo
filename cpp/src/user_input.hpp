@@ -7,24 +7,32 @@
 #include "log.hpp"
 #include "math.hpp"
 
+// Seems like SDL doesn't have named constants for mouse button 
+enum class MouseButton { LEFT = 1, MIDDLE, RIGHT };
+
 class UserAction {
 public:
-  enum class Type { NONE, EXIT, SET_MOVE_TARGET, SELECT_PATHFINDER };
+  enum class Type { NONE, EXIT, SET_MOVE_TARGET, SELECT_PATHFINDER, CAMERA_PAN, CAMERA_ZOOM };
 
-  UserAction() = default;
-  UserAction(Type t) : type(t) {}
+  UserAction() : type(Type::NONE), Argument{.number = 0} {}
+  UserAction(Type t) : type(t), Argument{.number = 0} {}
   UserAction(Type t, char key) : type(t), Argument{.key = key} {}
-  UserAction(Type t, WorldPos v) : type(t), Argument{.position = v} {}
-  UserAction(Type t, int arg) : type(t), Argument{.number = arg} {}
+  UserAction(Type t, WindowPos v) : type(t), Argument{.position = v} {}
+  UserAction(Type t, int32_t arg) : type(t), Argument{.number = arg} {}
+  UserAction(Type t, float arg) : type(t), Argument{.float_number = arg} {}
   ~UserAction() = default;
 
   Type type;
 
   union {
-    WorldPos position;
+    WindowPos position;
     char key;
-    int number;
+    int32_t number;
+    float float_number;
   } Argument;
+
+  // TODO use std::variant
+  //std::variant<WindowPos, char, int> Argument;
 };
 
 class UserInput {
@@ -43,4 +51,7 @@ public:
 
 private:
   std::vector<UserAction> m_Actions;
+
+  void GetActions_keyboard(const SDL_Event&);
+  void GetActions_mouse(const SDL_Event&);
 };
