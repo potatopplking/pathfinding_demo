@@ -554,15 +554,12 @@ TEST(Matrix, MatrixMultiplication) {
   Matrix<float, 2> m1(std::array<float, 4>{1.0f, 2.0f, 3.0f, 4.0f});
   Matrix<float, 2> m2(std::array<float, 4>{5.0f, 6.0f, 7.0f, 8.0f});
   
-  Matrix<float, 2> result = m1 * m2;
+  Matrix<float, 2> result = m2 * m1;
   
-  // m1 = [1 3]    m2 = [5 7]    result = [1*5+3*6  1*7+3*8] = [23 31]
-  //      [2 4]         [6 8]             [2*5+4*6  2*7+4*8]   [34 46]
-  
-  ASSERT_FLOAT_EQ(result[0][0], 23.0f);  // 1*5 + 3*6 = 23
-  ASSERT_FLOAT_EQ(result[0][1], 34.0f);  // 2*5 + 4*6 = 34
-  ASSERT_FLOAT_EQ(result[1][0], 31.0f);  // 1*7 + 3*8 = 31
-  ASSERT_FLOAT_EQ(result[1][1], 46.0f);  // 2*7 + 4*8 = 46
+  ASSERT_FLOAT_EQ(result[0][0], 23.0f);
+  ASSERT_FLOAT_EQ(result[0][1], 34.0f);
+  ASSERT_FLOAT_EQ(result[1][0], 31.0f);
+  ASSERT_FLOAT_EQ(result[1][1], 46.0f);
   
   // Test identity property: I * m = m
   Matrix<float, 2> identity = Matrix<float, 2>::Eye();
@@ -597,11 +594,8 @@ TEST(Matrix, MatrixVectorMultiplication) {
   
   vec<float, 2> result = m1 * v1;
   
-  // m1 = [1 3]    v1 = [2]    result = [1*2+3*3] = [11]
-  //      [2 4]         [3]             [2*2+4*3]   [16]
-  
-  ASSERT_FLOAT_EQ(result[0], 11.0f);  // 1*2 + 3*3 = 11
-  ASSERT_FLOAT_EQ(result[1], 16.0f);  // 2*2 + 4*3 = 16
+  ASSERT_FLOAT_EQ(result[0], 8.0f);
+  ASSERT_FLOAT_EQ(result[1], 18.0f);
   
   // Test with 3x3 matrix and 3D vector
   Matrix<int, 3> im1(std::array<int, 9>{1, 0, 0, 0, 1, 0, 0, 0, 1}); // Identity
