@@ -46,6 +46,28 @@ void Entity::Update(float time_delta) {
   m_Position += m_ActualVelocity * time_delta;
 }
 
+std::optional<WorldPos> Entity::GetMoveTarget()
+{
+  auto& path = GetPath();
+  if (path.empty()) {
+    return {};
+  }
+
+  WorldPos current_pos = GetPosition();
+  WorldPos next_pos = path.front();
+
+  if (current_pos.DistanceTo(next_pos) > 1.0) {
+    // target not reached yet
+    return next_pos;
+  }
+  // target reached, pop it
+  //m_MoveQueue.pop();
+  path.erase(path.begin());
+  // return nothing - if there's next point in the queue,
+  // we'll get it in the next iteration
+  return {};
+}
+
 Player::Player() {
   LOG_DEBUG(".");
   if (m_Sprite == nullptr) {

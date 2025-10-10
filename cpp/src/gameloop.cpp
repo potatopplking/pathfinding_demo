@@ -27,12 +27,17 @@ void GameLoop::Draw() {
   }
 
   // draw the path, if it exists
-  WorldPos start_pos = m_Game->GetPlayer()->GetPosition();
-  for (const auto &next_pos : m_Game->GetPath()) {
-    const auto &camera = m_Game->GetCamera();
-    m_Window->DrawLine(camera.WorldToWindow(start_pos),
-                       camera.WorldToWindow(next_pos));
-    start_pos = next_pos;
+
+  for (const auto& entity : m_Game->GetEntities())
+  {
+    WorldPos start_pos = entity->GetPosition();
+    for (const auto &next_pos : entity->GetPath())
+    {
+      const auto &camera = m_Game->GetCamera();
+      m_Window->DrawLine(camera.WorldToWindow(start_pos),
+                         camera.WorldToWindow(next_pos));
+      start_pos = next_pos;
+    }
   }
 
   // draw all the entities (player etc)
@@ -49,9 +54,10 @@ void GameLoop::Run() {
   LOG_INFO("Running the game");
   while (!m_Game->IsExitRequested()) {
     m_Game->HandleActions(m_UserInput->GetActions());
-    m_Game->UpdatePlayerVelocity();
+    m_Game->UpdateWorld();
 
     // TODO measure fps, draw only if delay for target fps was reached
+    // or create a separate thread for drawing
     m_Window->ClearWindow();
     Draw();
     m_Window->Flush();

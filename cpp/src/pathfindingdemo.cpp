@@ -55,54 +55,57 @@ void PathFindingDemo::CreateMap() {
   m_Map.PaintLine(TilePos{84,81}, TilePos{84,96}, 1.0, TileType::WALL);
   m_Map.PaintLine(TilePos{78,87}, TilePos{78,100}, 1.0, TileType::WALL);
 
-  // add player
+  // add some controllable entities 
   m_Entities.clear();
-  m_Player = std::make_shared<Player>();
-  m_Player->SetPosition(m_Map.TileToWorld(TilePos{25, 20}));
-  m_Entities.push_back(m_Player);
+  auto player = std::make_shared<Player>();
+  player->SetPosition(m_Map.TileToWorld(TilePos{25, 20}));
+  AddEntity(player);
+
+  auto player2 = std::make_shared<Player>();
+  player2->SetPosition(m_Map.TileToWorld(TilePos{50, 20}));
+  AddEntity(player2);
+
+
+  // select everything - TODO this is just temporary for testing
+  for (const auto& entity : m_Entities)
+  {
+    m_SelectedEntities.push_back(entity);
+  }
 }
 
 WorldPos PathFindingDemo::GetRandomPosition() const {
   return WorldPos{0.0f, 0.0f}; // totally random!
 }
 
-std::optional<WorldPos> PathFindingDemo::GetMoveTarget() {
-  WorldPos player_current_pos = GetPlayer()->GetPosition();
 
-  if (m_Path.empty()) {
-    return {};
-  }
 
-  WorldPos player_next_pos = m_Path.front();
-
-  if (player_current_pos.DistanceTo(player_next_pos) > 1.0) {
-    // target not reached yet
-    return player_next_pos;
-  }
-  // target reached, pop it
-  //m_MoveQueue.pop();
-  m_Path.erase(m_Path.begin());
-  // return nothing - if there's next point in the queue,
-  // we'll get it in the next iteration
-  return {};
-}
-
-void PathFindingDemo::UpdatePlayerVelocity() {
-  auto player = GetPlayer();
-  auto current_pos = player->GetPosition();
-  double tile_velocity_coeff = m_Map.GetTileVelocityCoeff(current_pos);
-  auto next_pos = GetMoveTarget();
-  WorldPos velocity = WorldPos{};
-  if (next_pos)
-  {
-    velocity = next_pos.value() - current_pos;
-    velocity.Normalize();
-    //LOG_DEBUG("I want to move to: ", next_pos.value(),
-    //          ", velocity: ", velocity);
-  }
-  player->SetActualVelocity(velocity * tile_velocity_coeff);
+// Update entity positions, handle collisions
+void PathFindingDemo::UpdateWorld() {
+  
   float time_delta = 1.0f;
-  player->Update(time_delta);
+  
+  for (auto& entity : m_Entities)
+  {
+    // calculate the velocity
+    auto current_pos = entity->GetPosition();
+    double tile_velocity_coeff = m_Map.GetTileVelocityCoeff(current_pos);
+    auto next_pos = entity->GetMoveTarget();
+    WorldPos velocity = WorldPos{};
+    if (next_pos)
+    {
+      velocity = next_pos.value() - current_pos;
+      velocity.Normalize();
+      //LOG_DEBUG("I want to move to: ", next_pos.value(),
+      //          ", velocity: ", velocity);
+    }
+    entity->SetActualVelocity(velocity * tile_velocity_coeff);
+    
+
+    // handle collisions - these may modify the velocity
+ 
+    // update the position
+    entity->Update(time_delta);
+  }
 }
 
 void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions)
@@ -116,10 +119,19 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions)
     }
     else if (action.type == UserAction::Type::SET_MOVE_TARGET)
     {
-      WorldPos wp = m_Camera.WindowToWorld(action.Argument.position);
-      LOG_INFO("Calculating path to target: ", wp);
-      m_Path = m_PathFinder->CalculatePath(m_Player->GetPosition(), wp);
-      LOG_INFO("Done, path node count: ", m_Path.size());
+      WorldPos target_pos = m_Camera.WindowToWorld(action.Argument.position);
+      for (auto& selected_entity : m_SelectedEntities)
+      {
+        LOG_INFO("Calculating path to target: ", target_pos);
+        if (auto sp = selected_entity.lock())
+        {
+          auto path = m_PathFinder->CalculatePath(sp->GetPosition(), target_pos);
+          sp->SetPath(path);
+          LOG_INFO("Done, path node count: ", path.size());
+        } else {
+          LOG_INFO("Cannot calculate path for destroyed entity (weak_ptr.lock() failed)");
+        }
+      }
     }
     else if (action.type == UserAction::Type::SELECT_PATHFINDER)
     {

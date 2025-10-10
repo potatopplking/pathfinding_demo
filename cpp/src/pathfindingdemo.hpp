@@ -22,17 +22,14 @@ public:
   PathFindingDemo &operator=(const PathFindingDemo &) = delete;
   PathFindingDemo &operator=(PathFindingDemo &&) = delete;
 
-  std::shared_ptr<Player> GetPlayer() { return m_Player; }
   std::vector<std::shared_ptr<Entity>>& GetEntities() { return m_Entities; }
   const Map& GetMap() const { return m_Map; }
   const Camera& GetCamera() const { return m_Camera; }
-  const pathfinder::Path& GetPath() const { return m_Path; }
   bool IsExitRequested() const { return m_ExitRequested; }
 
   void AddEntity(std::shared_ptr<Entity> e);
   void CreateMap();
-  std::optional<WorldPos> GetMoveTarget();
-  void UpdatePlayerVelocity();
+  void UpdateWorld();
   void HandleActions(const std::vector<UserAction> &actions);
   WorldPos GetRandomPosition() const;
 
@@ -41,7 +38,6 @@ private:
   Map m_Map;
   Camera m_Camera;
   std::vector<std::shared_ptr<Entity>> m_Entities;
-  std::shared_ptr<Player> m_Player;
-  pathfinder::Path m_Path;
   std::unique_ptr<pathfinder::PathFinderBase> m_PathFinder;
+  std::vector<std::weak_ptr<Entity>> m_SelectedEntities;
 };
