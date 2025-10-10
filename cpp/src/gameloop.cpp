@@ -1,14 +1,49 @@
-#include <thread>
 #include <memory>
+#include <thread>
 
 #include "gameloop.hpp"
 
-#include "pathfindingdemo.hpp"
-#include "window.hpp"
-#include "user_input.hpp"
 #include "log.hpp"
-#include "pathfinder/base.hpp"
 #include "math.hpp"
+#include "pathfinder/base.hpp"
+#include "pathfindingdemo.hpp"
+#include "user_input.hpp"
+#include "window.hpp"
+
+void GameLoop::Draw() {
+  // draw the map (terrain tiles)
+  const Map &map = m_Game->GetMap();
+  const auto &tiles = map.GetMapTiles();
+  for (size_t row = 0; row < tiles.size(); row++) {
+    for (size_t col = 0; col < tiles[row].size(); col++) {
+      const auto &camera = m_Game->GetCamera();
+      const auto &position = camera.WorldToWindow(map.TileEdgeToWorld(
+          TilePos{static_cast<int32_t>(row), static_cast<int32_t>(col)}));
+      const auto &size = camera.WorldToWindowSize(map.GetTileSize());
+      // LOG_DEBUG("Drawing rect (", row, ", ", col, ")");
+      m_Window->DrawRect(position, size, tiles[row][col]->R, tiles[row][col]->G,
+                         tiles[row][col]->B, tiles[row][col]->A);
+    }
+  }
+
+  // draw the path, if it exists
+  WorldPos start_pos = m_Game->GetPlayer()->GetPosition();
+  for (const auto &next_pos : m_Game->GetPath()) {
+    const auto &camera = m_Game->GetCamera();
+    m_Window->DrawLine(camera.WorldToWindow(start_pos),
+                       camera.WorldToWindow(next_pos));
+    start_pos = next_pos;
+  }
+
+  // draw all the entities (player etc)
+  for (auto &entity : m_Game->GetEntities()) {
+    const auto &camera = m_Game->GetCamera();
+    m_Window->DrawSprite(camera.WorldToWindow(entity->GetPosition()),
+                         entity->GetSprite(), camera.GetZoom());
+  }
+}
+
+// TODO rethink coupling and dependencies in the game loop class
 
 void GameLoop::Run() {
   LOG_INFO("Running the game");
@@ -16,50 +51,11 @@ void GameLoop::Run() {
     m_Game->HandleActions(m_UserInput->GetActions());
     m_Game->UpdatePlayerVelocity();
 
+    // TODO measure fps, draw only if delay for target fps was reached
     m_Window->ClearWindow();
-
-    // TODO wrap all of the drawing in some function
-    // TODO rethink coupling and dependencies here
-    
-    // draw the map (terrain tiles)
-    const Map &map = m_Game->GetMap();
-    const auto &tiles = map.GetMapTiles();
-    for (size_t row = 0; row < tiles.size(); row++) {
-      for (size_t col = 0; col < tiles[row].size(); col++) {
-        const auto& camera = m_Game->GetCamera();
-        const auto& position = camera.WorldToWindow(
-          map.TileEdgeToWorld(
-            TilePos{static_cast<int32_t>(row), static_cast<int32_t>(col)}
-          )
-        );
-        const auto& size = camera.WorldToWindowSize(
-              map.GetTileSize()
-        );
-        // LOG_DEBUG("Drawing rect (", row, ", ", col, ")");
-        m_Window->DrawRect(
-            position,
-            size,
-            tiles[row][col]->R, tiles[row][col]->G,
-            tiles[row][col]->B, tiles[row][col]->A);
-      }
-    }
-
-    // draw the path, if it exists
-    WorldPos start_pos = m_Game->GetPlayer()->GetPosition();
-    for (const auto& next_pos: m_Game->GetPath()) {
-      const auto& camera = m_Game->GetCamera();
-      m_Window->DrawLine(camera.WorldToWindow(start_pos), camera.WorldToWindow(next_pos));
-      start_pos = next_pos;
-    }
-
-    // draw all the entities (player etc)
-    for (auto &entity : m_Game->GetEntities()) {
-      const auto& camera = m_Game->GetCamera();
-      m_Window->DrawSprite(camera.WorldToWindow(entity->GetPosition()), entity->GetSprite(), camera.GetZoom());
-    }
-    
+    Draw();
     m_Window->Flush();
-    // TODO measure fps
+
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
 }

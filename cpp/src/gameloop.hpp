@@ -27,6 +27,8 @@ public:
   }
 
 private:
+  void Draw();
+
   std::unique_ptr<PathFindingDemo> m_Game;
   std::unique_ptr<Window> m_Window;
   std::unique_ptr<UserInput> m_UserInput;
