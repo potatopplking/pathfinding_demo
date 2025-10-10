@@ -12,6 +12,8 @@
 #include "pathfinder/base.hpp"
 #include "camera.hpp"
 
+using Collision = std::pair<std::weak_ptr<Entity>, std::weak_ptr<Entity>>;
+
 class PathFindingDemo {
 public:
   PathFindingDemo(int width, int height);
@@ -33,7 +35,10 @@ public:
   void HandleActions(const std::vector<UserAction> &actions);
   WorldPos GetRandomPosition() const;
 
+
 private:
+  const std::vector<Collision>& GetEntityCollisions();
+
   bool m_ExitRequested = false;
   Map m_Map;
   Camera m_Camera;

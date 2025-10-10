@@ -63,6 +63,10 @@ public:
   void SetPath(pathfinder::Path& path) { m_Path = path; }
   std::optional<WorldPos> GetMoveTarget();
 
+  bool CollidesWith(const Entity& other) const;
+
+  bool IsCollisionBoxVisible() const { return m_CollisionBoxVisible; }
+
 protected:
   WorldPos m_Position;
   WorldPos m_ActualVelocity;
@@ -71,7 +75,7 @@ protected:
 
 private:
   bool m_FlagExpired = false;
-  static constexpr float m_CollisionRadiusSq = 1000.0f;
+  bool m_CollisionBoxVisible = true;
 };
 
 class Player final : public Entity {
@@ -83,7 +87,7 @@ public:
   constexpr Entity::Type GetType() const override {
     return Entity::Type::PLAYER;
   }
-  constexpr float GetCollisionRadius() const override { return 50.0f; }
+  constexpr float GetCollisionRadius() const override { return 25.0f; }
   bool IsMovable() const override { return true; }
   bool IsCollidable() const override { return true; }
 

@@ -43,8 +43,14 @@ void GameLoop::Draw() {
   // draw all the entities (player etc)
   for (auto &entity : m_Game->GetEntities()) {
     const auto &camera = m_Game->GetCamera();
-    m_Window->DrawSprite(camera.WorldToWindow(entity->GetPosition()),
-                         entity->GetSprite(), camera.GetZoom());
+    auto entity_pos_window = camera.WorldToWindow(entity->GetPosition());
+    m_Window->DrawSprite(entity_pos_window,
+                         entity->GetSprite(),
+                         camera.GetZoom());
+    if (entity->IsCollisionBoxVisible())
+    {
+      m_Window->DrawCircle(entity_pos_window, entity->GetCollisionRadius());
+    }
   }
 }
 

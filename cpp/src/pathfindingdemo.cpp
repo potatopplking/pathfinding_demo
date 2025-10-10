@@ -65,6 +65,15 @@ void PathFindingDemo::CreateMap() {
   player2->SetPosition(m_Map.TileToWorld(TilePos{50, 20}));
   AddEntity(player2);
 
+  for (int i = 0; i < 1; i++)
+  {
+    for (int j = 0; j < 10; j++)
+    {
+      auto p = std::make_shared<Player>();
+      p->SetPosition(m_Map.TileToWorld(TilePos{10+5*i, 40+5*j}));
+      AddEntity(p);
+    }
+  }
 
   // select everything - TODO this is just temporary for testing
   for (const auto& entity : m_Entities)
@@ -77,6 +86,30 @@ WorldPos PathFindingDemo::GetRandomPosition() const {
   return WorldPos{0.0f, 0.0f}; // totally random!
 }
 
+
+
+const std::vector<Collision>& PathFindingDemo::GetEntityCollisions()
+{
+  static std::vector<Collision> m_Collisions;
+  m_Collisions.clear();
+
+  for (const auto &entity_A : m_Entities)
+  {
+    for (const auto &entity_B : m_Entities)
+    {
+      if (entity_A == entity_B)
+        continue;
+      if (!entity_A->IsCollidable() || !entity_B->IsCollidable())
+        continue;
+      if (entity_A->CollidesWith(*entity_B))
+      {
+        // handle collision logic
+        m_Collisions.emplace_back(Collision(entity_A, entity_B));
+      }
+    }
+  }
+  return m_Collisions;
+}
 
 
 // Update entity positions, handle collisions
@@ -100,8 +133,26 @@ void PathFindingDemo::UpdateWorld() {
     }
     entity->SetActualVelocity(velocity * tile_velocity_coeff);
     
-
-    // handle collisions - these may modify the velocity
+    for (const auto& collision : GetEntityCollisions())
+    {
+      // TODO this loop is quite "hot", is it good idea to use weak_ptr and promote it?
+      auto weak_A = std::get<0>(collision);
+      auto weak_B = std::get<1>(collision);
+      auto A = weak_A.lock();
+      auto B = weak_B.lock();
+      if (A == nullptr || B == nullptr)
+      {
+        continue;
+      }
+      if (!A->IsMovable())
+        continue;
+      // modify actual speed
+      // LOG_DEBUG("Collision: A is ", A, ", B is ", B);
+      auto AB = B->GetPosition() - A->GetPosition();
+      A->ZeroActualVelocityInDirection(AB);
+      // handle logic
+      // TODO
+    } 
  
     // update the position
     entity->Update(time_delta);

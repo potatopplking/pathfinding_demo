@@ -165,6 +165,12 @@ public:
     return (a - b).Length();
   }
 
+  T DistanceSquared(const vec &b) const {
+    const vec &a = *this;
+    return (a - b).LengthSquared();
+  }
+
+
   //
   // In-place vector operations
   //

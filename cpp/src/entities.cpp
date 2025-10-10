@@ -68,6 +68,25 @@ std::optional<WorldPos> Entity::GetMoveTarget()
   return {};
 }
 
+bool Entity::CollidesWith(const Entity& other) const
+{
+  const auto& A = *this;
+  const auto& B = other;
+
+  auto position_A = A.GetPosition();
+  auto position_B = B.GetPosition();
+  auto distance_sq = position_A.DistanceSquared(position_B);
+  auto collision_distance_sq =
+      A.GetCollisionRadiusSquared() +
+      B.GetCollisionRadiusSquared() +
+      2 * A.GetCollisionRadius() * B.GetCollisionRadius();
+  if (distance_sq < collision_distance_sq)
+  {
+    return true;
+  }
+  return false;
+}
+
 Player::Player() {
   LOG_DEBUG(".");
   if (m_Sprite == nullptr) {
