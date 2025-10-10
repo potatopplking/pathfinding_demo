@@ -203,5 +203,35 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions)
       m_Camera.Zoom(action.Argument.float_number);
       LOG_INFO("Camera zoom: ", action.Argument.float_number);
     }
+    else if (action.type == UserAction::Type::SELECTION_START)
+    {
+      m_SelectionBox.active = true;
+      m_SelectionBox.start = action.Argument.position;
+    }
+    else if (action.type == UserAction::Type::SELECTION_END)
+    {
+      m_SelectionBox.end = action.Argument.position;
+      m_SelectionBox.active = false;
+      SelectEntitiesInRectangle(m_SelectionBox.start, m_SelectionBox.end);
+    }
   };
 }
+
+void PathFindingDemo::SelectEntitiesInRectangle(WindowPos A, WindowPos B)
+{
+  // TODO use colliders for this
+  m_SelectedEntities.clear();
+  auto [x_min, x_max] = std::minmax(A.x(), B.x());
+  auto [y_min, y_max] = std::minmax(A.y(), B.y());
+  for (const auto& entity : m_Entities)
+  {
+    const auto& pos = entity->GetPosition();
+    bool x_in_range = x_min < pos.x() && pos.x() < x_max;
+    bool y_in_range = y_min < pos.y() && pos.y() < y_max;
+    if (x_in_range && y_in_range)
+    {
+      m_SelectedEntities.push_back(std::weak_ptr(entity));
+    }
+  }
+}
+

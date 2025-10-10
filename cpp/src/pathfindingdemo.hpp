@@ -14,6 +14,12 @@
 
 using Collision = std::pair<std::weak_ptr<Entity>, std::weak_ptr<Entity>>;
 
+struct SelectionBox
+{
+  WindowPos start, end;
+  bool active;
+};
+
 class PathFindingDemo {
 public:
   PathFindingDemo(int width, int height);
@@ -35,6 +41,7 @@ public:
   void HandleActions(const std::vector<UserAction> &actions);
   WorldPos GetRandomPosition() const;
 
+  void SelectEntitiesInRectangle(WindowPos A, WindowPos B);
 
 private:
   const std::vector<Collision>& GetEntityCollisions();
@@ -45,4 +52,5 @@ private:
   std::vector<std::shared_ptr<Entity>> m_Entities;
   std::unique_ptr<pathfinder::PathFinderBase> m_PathFinder;
   std::vector<std::weak_ptr<Entity>> m_SelectedEntities;
+  SelectionBox m_SelectionBox;
 };
