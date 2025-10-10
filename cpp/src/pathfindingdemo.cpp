@@ -67,17 +67,17 @@ WorldPos PathFindingDemo::GetRandomPosition() const {
 }
 
 std::optional<WorldPos> PathFindingDemo::GetMoveTarget() {
-  WorldPos current_player_pos = GetPlayer()->GetPosition();
+  WorldPos player_current_pos = GetPlayer()->GetPosition();
 
   if (m_Path.empty()) {
     return {};
   }
 
-  WorldPos next_player_pos = m_Path.front();
+  WorldPos player_next_pos = m_Path.front();
 
-  if (current_player_pos.DistanceTo(next_player_pos) > 1.0) {
+  if (player_current_pos.DistanceTo(player_next_pos) > 1.0) {
     // target not reached yet
-    return next_player_pos;
+    return player_next_pos;
   }
   // target reached, pop it
   //m_MoveQueue.pop();
