@@ -212,12 +212,17 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions)
     {
       m_SelectionBox.end = action.Argument.position;
       m_SelectionBox.active = false;
-      SelectEntitiesInRectangle(m_SelectionBox.start, m_SelectionBox.end);
+      auto diff = m_SelectionBox.end - m_SelectionBox.start;
+      // here we explicitly change the vector type from WindowPos to WindowSize
+      m_SelectionBox.size = diff.ChangeTag<WindowSizeTag>();
+      WorldPos start = m_Camera.WindowToWorld(m_SelectionBox.start);
+      WorldPos end = m_Camera.WindowToWorld(m_SelectionBox.end);
+      SelectEntitiesInRectangle(start, end);
     }
   };
 }
 
-void PathFindingDemo::SelectEntitiesInRectangle(WindowPos A, WindowPos B)
+void PathFindingDemo::SelectEntitiesInRectangle(WorldPos A, WorldPos B)
 {
   // TODO use colliders for this
   m_SelectedEntities.clear();
@@ -233,5 +238,13 @@ void PathFindingDemo::SelectEntitiesInRectangle(WindowPos A, WindowPos B)
       m_SelectedEntities.push_back(std::weak_ptr(entity));
     }
   }
+  LOG_INFO("Selected ", m_SelectedEntities.size(), " entities");
+}
+
+std::pair<const WorldPos&, const WorldSize&> PathFindingDemo::GetSelectionBoxPosSize()
+{
+  const auto& pos = m_SelectionBox.start;
+  WindowPos diff = m_SelectionBox.end - m_SelectionBox.start;
+  
 }
 

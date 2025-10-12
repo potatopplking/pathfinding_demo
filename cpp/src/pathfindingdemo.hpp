@@ -41,7 +41,9 @@ public:
   void HandleActions(const std::vector<UserAction> &actions);
   WorldPos GetRandomPosition() const;
 
-  void SelectEntitiesInRectangle(WindowPos A, WindowPos B);
+  void SelectEntitiesInRectangle(WorldPos A, WorldPos B);
+  bool IsSelectionBoxActive() const { return m_SelectionBox.active; }
+  std::pair<const WorldPos&, const WorldSize&> GetSelectionBoxPosSize();
 
 private:
   const std::vector<Collision>& GetEntityCollisions();
