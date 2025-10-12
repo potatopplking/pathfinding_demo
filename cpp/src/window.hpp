@@ -28,7 +28,7 @@ public:
   void DrawRect(const WindowPos &position, const WindowSize size, uint8_t R, uint8_t G, uint8_t B);
   void ClearWindow();
   void Flush();
-  void DrawCircle(const WindowPos &position, float radius);
+  void DrawCircle(const WindowPos &position, float radius, uint8_t R, uint8_t G, uint8_t B);
   void DrawLine(const WindowPos &A, const WindowPos &B);
 
 private:

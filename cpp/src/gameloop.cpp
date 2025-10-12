@@ -50,7 +50,12 @@ void GameLoop::Draw() {
     if (entity->IsCollisionBoxVisible())
     {
       float collision_radius = camera.WorldToWindowSize(entity->GetCollisionRadius());
-      m_Window->DrawCircle(entity_pos, collision_radius);
+      m_Window->DrawCircle(entity_pos, collision_radius, 255, 0, 0);
+    }
+    if (entity->IsSelected())
+    {
+      float collision_radius = camera.WorldToWindowSize(entity->GetCollisionRadius());
+      m_Window->DrawCircle(entity_pos, collision_radius, 0, 255, 0);
     }
   }
 

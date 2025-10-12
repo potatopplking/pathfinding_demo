@@ -67,6 +67,10 @@ public:
 
   bool IsCollisionBoxVisible() const { return m_CollisionBoxVisible; }
 
+  void Select() { m_Selected = true; }
+  void Deselect() { m_Selected = false; }
+  bool IsSelected() const { return m_Selected; }
+
 protected:
   WorldPos m_Position;
   WorldPos m_ActualVelocity;
@@ -76,6 +80,7 @@ protected:
 private:
   bool m_FlagExpired = false;
   bool m_CollisionBoxVisible = true;
+  bool m_Selected = false;
 };
 
 class Player final : public Entity {

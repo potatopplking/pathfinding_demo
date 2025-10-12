@@ -104,10 +104,11 @@ void Window::ClearWindow() {
 
 void Window::Flush() { SDL_RenderPresent(m_Renderer.get()); }
 
-void Window::DrawCircle(const WindowPos &position, float radius) {
+// TODO use some struct for color
+void Window::DrawCircle(const WindowPos &position, float radius, uint8_t R, uint8_t G, uint8_t B) {
   int cx = static_cast<int>(position.x());
   int cy = static_cast<int>(position.y());
-  SDL_SetRenderDrawColor(m_Renderer.get(), 255, 0, 0, 255);
+  SDL_SetRenderDrawColor(m_Renderer.get(), R, G, B, 255);
   for (int i = 0; i < 360; ++i) {
     double a = i * M_PI / 180.0;
     SDL_RenderPoint(m_Renderer.get(),

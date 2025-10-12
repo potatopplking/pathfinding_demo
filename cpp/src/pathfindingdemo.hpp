@@ -43,8 +43,10 @@ public:
   WorldPos GetRandomPosition() const;
 
   void SelectEntitiesInRectangle(WorldPos A, WorldPos B);
+  void DeselectEntities();
   bool IsSelectionBoxActive() const { return m_SelectionBox.active; }
   std::pair<WindowPos, WindowSize> GetSelectionBoxPosSize();
+  std::vector<std::weak_ptr<Entity>> GetSelectedEntities() { return m_SelectedEntities; }
 
 private:
   const std::vector<Collision>& GetEntityCollisions();

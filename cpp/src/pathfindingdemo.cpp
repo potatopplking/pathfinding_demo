@@ -229,10 +229,21 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions)
   };
 }
 
+void PathFindingDemo::DeselectEntities()
+{
+  std::for_each(m_SelectedEntities.begin(), m_SelectedEntities.end(), [](auto& x)
+      {
+        if (auto entity = x.lock())
+        entity->Deselect();
+      }
+  );
+  m_SelectedEntities.clear();
+}
+
 void PathFindingDemo::SelectEntitiesInRectangle(WorldPos A, WorldPos B)
 {
+  DeselectEntities();
   // TODO use colliders for this
-  m_SelectedEntities.clear();
   auto [x_min, x_max] = std::minmax(A.x(), B.x());
   auto [y_min, y_max] = std::minmax(A.y(), B.y());
   for (const auto& entity : m_Entities)
@@ -243,6 +254,7 @@ void PathFindingDemo::SelectEntitiesInRectangle(WorldPos A, WorldPos B)
     if (x_in_range && y_in_range)
     {
       m_SelectedEntities.push_back(std::weak_ptr(entity));
+      entity->Select();
     }
   }
   LOG_INFO("Selected ", m_SelectedEntities.size(), " entities");
