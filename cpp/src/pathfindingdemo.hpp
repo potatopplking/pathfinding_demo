@@ -17,6 +17,7 @@ using Collision = std::pair<std::weak_ptr<Entity>, std::weak_ptr<Entity>>;
 struct SelectionBox
 {
   WindowPos start, end;
+  WindowSize size;
   bool active;
 };
 
@@ -43,7 +44,7 @@ public:
 
   void SelectEntitiesInRectangle(WorldPos A, WorldPos B);
   bool IsSelectionBoxActive() const { return m_SelectionBox.active; }
-  std::pair<const WorldPos&, const WorldSize&> GetSelectionBoxPosSize();
+  std::pair<WindowPos, WindowSize> GetSelectionBoxPosSize();
 
 private:
   const std::vector<Collision>& GetEntityCollisions();

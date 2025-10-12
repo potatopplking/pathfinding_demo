@@ -21,7 +21,7 @@ void GameLoop::Draw() {
           TilePos{static_cast<int32_t>(row), static_cast<int32_t>(col)}));
       const auto &size = camera.WorldToWindowSize(map.GetTileSize());
       // LOG_DEBUG("Drawing rect (", row, ", ", col, ")");
-      m_Window->DrawRect(position, size, tiles[row][col]->R, tiles[row][col]->G,
+      m_Window->DrawFilledRect(position, size, tiles[row][col]->R, tiles[row][col]->G,
                          tiles[row][col]->B, tiles[row][col]->A);
     }
   }
@@ -52,6 +52,15 @@ void GameLoop::Draw() {
       m_Window->DrawCircle(entity_pos_window, entity->GetCollisionRadius());
     }
   }
+
+  // draw the selection box, if present
+  if (m_Game->IsSelectionBoxActive())
+  {
+    const auto& [corner_pos, size] = m_Game->GetSelectionBoxPosSize();
+    m_Window->DrawRect(corner_pos, size, 200, 20, 20, 100);
+  }
+
+
 }
 
 // TODO rethink coupling and dependencies in the game loop class

@@ -22,6 +22,7 @@ public:
     CAMERA_PAN,
     CAMERA_ZOOM,
     SELECTION_START,
+    SELECTION_CHANGE,
     SELECTION_END
   };
 
@@ -62,6 +63,7 @@ public:
 
 private:
   std::vector<UserAction> m_Actions;
+  bool m_SelectionActive = false;
 
   void GetActions_keyboard(const SDL_Event&);
   void GetActions_mouse(const SDL_Event&);
