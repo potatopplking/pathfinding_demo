@@ -207,6 +207,7 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions)
     {
       m_SelectionBox.active = true;
       m_SelectionBox.start = action.Argument.position;
+      m_SelectionBox.end = action.Argument.position;
     }
     else if (action.type == UserAction::Type::SELECTION_END)
     {

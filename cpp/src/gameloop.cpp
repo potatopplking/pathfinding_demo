@@ -57,7 +57,7 @@ void GameLoop::Draw() {
   if (m_Game->IsSelectionBoxActive())
   {
     const auto& [corner_pos, size] = m_Game->GetSelectionBoxPosSize();
-    m_Window->DrawRect(corner_pos, size, 200, 20, 20, 100);
+    m_Window->DrawRect(corner_pos, size, 200, 20, 20);
   }
 
 

@@ -25,8 +25,7 @@ public:
   void DrawSprite(const WindowPos &position, Sprite &s, float scale = 1.0f);
   void DrawFilledRect(const WindowPos &position, const WindowSize size, uint8_t R,
                 uint8_t G, uint8_t B, uint8_t A);
-  void DrawRect(const WindowPos &position, const WindowSize size, uint8_t R,
-                uint8_t G, uint8_t B, uint8_t fill_alpha);
+  void DrawRect(const WindowPos &position, const WindowSize size, uint8_t R, uint8_t G, uint8_t B);
   void ClearWindow();
   void Flush();
   void DrawCircle(const WindowPos &position, float radius);

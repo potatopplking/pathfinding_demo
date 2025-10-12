@@ -91,12 +91,10 @@ void Window::DrawFilledRect(const WindowPos &position, const WindowSize size, ui
   SDL_RenderFillRect(m_Renderer.get(), &rect);
 }
 
-void Window::DrawRect(const WindowPos &position, const WindowSize size, uint8_t R,
-                      uint8_t G, uint8_t B, uint8_t fill_alpha) {
+void Window::DrawRect(const WindowPos &position, const WindowSize size, uint8_t R, uint8_t G, uint8_t B) {
   SDL_FRect rect = {position.x(), position.y(), size.x(), size.y()};
   SDL_SetRenderDrawColor(m_Renderer.get(), R, G, B, 255);
   SDL_RenderRect(m_Renderer.get(), &rect);
-  //SDL_RenderFillRect(m_Renderer.get(), &rect);
 }
 
 void Window::ClearWindow() {
