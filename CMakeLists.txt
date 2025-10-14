@@ -1,18 +1,57 @@
 cmake_minimum_required(VERSION 3.20)
+
+# Vcpkg integration for Windows
+if(WIN32)
+    # Try to find vcpkg automatically
+    if(DEFINED ENV{VCPKG_ROOT})
+        set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            CACHE STRING "Vcpkg toolchain file")
+        message(STATUS "Using vcpkg from: $ENV{VCPKG_ROOT}")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+        set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            CACHE STRING "Vcpkg toolchain file")
+        message(STATUS "Using local vcpkg installation")
+    else()
+        message(WARNING "vcpkg not found. Please set VCPKG_ROOT environment variable or install vcpkg locally.")
+        message(STATUS "To install dependencies with vcpkg:")
+        message(STATUS "  vcpkg install sdl3 sdl3-image glew opengl gtest")
+    endif()
+endif()
+
 project(PathfindingDemo)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Find required packages
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SDL3 REQUIRED sdl3)
-pkg_check_modules(SDL3_image REQUIRED sdl3-image)
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-
-# Add Google Test
-find_package(GTest REQUIRED)
+# Platform-specific package finding
+if(WIN32)
+    # Windows: Use vcpkg-compatible find_package
+    # Note: These packages should be installed via vcpkg:
+    # vcpkg install sdl3 sdl3-image glew opengl gtest
+    find_package(SDL3 REQUIRED)
+    find_package(SDL3_image REQUIRED)
+    find_package(OpenGL REQUIRED)
+    find_package(GLEW REQUIRED)
+    find_package(GTest REQUIRED)
+    
+    # Set vcpkg target names for consistent linking
+    set(SDL3_TARGET SDL3::SDL3)
+    set(SDL3_IMAGE_TARGET SDL3_image::SDL3_image)
+    set(GLEW_TARGET GLEW::GLEW)
+else()
+    # Linux/Unix: Use pkg-config
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SDL3 REQUIRED sdl3)
+    pkg_check_modules(SDL3_image REQUIRED sdl3-image)
+    find_package(OpenGL REQUIRED)
+    find_package(GLEW REQUIRED)
+    find_package(GTest REQUIRED)
+    
+    # Set target names for Unix systems
+    set(SDL3_TARGET ${SDL3_LIBRARIES})
+    set(SDL3_IMAGE_TARGET ${SDL3_image_LIBRARIES})
+    set(GLEW_TARGET GLEW::GLEW)
+endif()
 
 # Include directories
 include_directories(cpp/src)
@@ -60,16 +99,35 @@ set(HEADERS
 # Create main executable
 add_executable(pathfinding_demo ${MAIN_SOURCES} ${HEADERS})
 
-# Link libraries for main executable
-target_link_libraries(pathfinding_demo 
-    ${SDL3_LIBRARIES} 
-    ${SDL3_image_LIBRARIES}
-    OpenGL::GL
-    GLEW::GLEW
-)
-
-# Add compile flags
-target_compile_options(pathfinding_demo PRIVATE ${SDL3_CFLAGS_OTHER})
+# Platform-specific linking
+if(WIN32)
+    # Windows: Use vcpkg targets
+    target_link_libraries(pathfinding_demo 
+        ${SDL3_TARGET}
+        ${SDL3_IMAGE_TARGET}
+        OpenGL::GL
+        ${GLEW_TARGET}
+    )
+    
+    # Add compile flags for Windows (vcpkg handles most of this automatically)
+    if(MSVC)
+        # vcpkg sets most flags automatically, but we can add SDL3 specific ones if needed
+        if(SDL3_CFLAGS_OTHER)
+            target_compile_options(pathfinding_demo PRIVATE ${SDL3_CFLAGS_OTHER})
+        endif()
+    endif()
+else()
+    # Unix/Linux: Use pkg-config variables
+    target_link_libraries(pathfinding_demo 
+        ${SDL3_TARGET}
+        ${SDL3_IMAGE_TARGET}
+        OpenGL::GL
+        ${GLEW_TARGET}
+    )
+    
+    # Add compile flags for Unix/Linux
+    target_compile_options(pathfinding_demo PRIVATE ${SDL3_CFLAGS_OTHER})
+endif()
 
 # Test executable
 add_executable(tests cpp/test/test.cpp)
@@ -79,12 +137,30 @@ target_link_libraries(tests GTest::gtest GTest::gtest_main)
 enable_testing()
 add_test(NAME unit_tests COMMAND tests)
 
-# Compiler-specific options
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+# Compiler-specific options with MSVC support
+if(MSVC)
+    # MSVC-specific flags: disable permissive mode, enable high warning level
+    target_compile_options(pathfinding_demo PRIVATE /W4 /permissive-)
+    target_compile_options(tests PRIVATE /W4 /permissive-)
+    
+    # Additional MSVC flags for C++23 and modern standards
+    target_compile_options(pathfinding_demo PRIVATE /Zc:__cplusplus /Zc:preprocessor)
+    target_compile_options(tests PRIVATE /Zc:__cplusplus /Zc:preprocessor)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # GCC/Clang flags
     target_compile_options(pathfinding_demo PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(tests PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-# Debug/Release configurations
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+# Platform-specific build configurations
+if(MSVC)
+    # MSVC flags
+    set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /RTC1")
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Zi /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /DNDEBUG")
+else()
+    # GCC/Clang flags
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+endif()
