@@ -44,6 +44,8 @@ public:
     requires(std::same_as<ArgsT, T> && ...) && (sizeof...(ArgsT) == N)
   vec(ArgsT... args) : m_Array{args...} {}
 
+  vec(std::array<T, N> array) : m_Array{array} {}
+
   //
   // Access to elements & data
   //
@@ -165,6 +167,12 @@ public:
     return (a - b).Length();
   }
 
+  T DistanceSquared(const vec &b) const {
+    const vec &a = *this;
+    return (a - b).LengthSquared();
+  }
+
+
   //
   // In-place vector operations
   //
@@ -249,6 +257,12 @@ public:
     requires(N >= 3)
   {
     return m_Array[2];
+  }
+
+  template <typename TargetTag>
+  vec<T,N,TargetTag> ChangeTag()
+  {
+    return vec<T,N,TargetTag>(m_Array);
   }
 
 private:

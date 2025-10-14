@@ -31,7 +31,14 @@ void UserInput::GetActions_mouse(const SDL_Event& event)
   {
     if (button == MouseButton::LEFT)
     {
-      LOG_DEBUG("Mouse down: ", mouse_event.x, ", ", mouse_event.y);
+      LOG_DEBUG("Selection start at ", mouse_event.x, ", ", mouse_event.y);
+      m_SelectionActive = true;
+      m_Actions.emplace_back(UserAction::Type::SELECTION_START,
+                             WindowPos{mouse_event.x, mouse_event.y});
+    }
+    else if (button == MouseButton::RIGHT)
+    {
+      LOG_DEBUG("Set move target to: ", mouse_event.x, ", ", mouse_event.y);
       m_Actions.emplace_back(UserAction::Type::SET_MOVE_TARGET,
                              WindowPos{mouse_event.x, mouse_event.y});
     }
@@ -42,6 +49,13 @@ void UserInput::GetActions_mouse(const SDL_Event& event)
   }
   else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP)
   {
+    if (button == MouseButton::LEFT)
+    {
+      LOG_DEBUG("Selection end at ", mouse_event.x, ", ", mouse_event.y);
+      m_SelectionActive = false;
+      m_Actions.emplace_back(UserAction::Type::SELECTION_END,
+                             WindowPos{mouse_event.x, mouse_event.y});
+    }
     if (button == MouseButton::MIDDLE)
     {
       mouse_pan = false;
@@ -54,6 +68,11 @@ void UserInput::GetActions_mouse(const SDL_Event& event)
     {
       m_Actions.emplace_back(UserAction::Type::CAMERA_PAN,
                              WindowPos{motion_event.xrel, motion_event.yrel});  
+    }
+    if (m_SelectionActive)
+    {
+      m_Actions.emplace_back(UserAction::Type::SELECTION_CHANGE,
+                             WindowPos{mouse_event.x, mouse_event.y});
     }
   }
   else if(event.type == SDL_EVENT_MOUSE_WHEEL)

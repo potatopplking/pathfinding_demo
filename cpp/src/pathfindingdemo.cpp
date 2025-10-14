@@ -55,54 +55,108 @@ void PathFindingDemo::CreateMap() {
   m_Map.PaintLine(TilePos{84,81}, TilePos{84,96}, 1.0, TileType::WALL);
   m_Map.PaintLine(TilePos{78,87}, TilePos{78,100}, 1.0, TileType::WALL);
 
-  // add player
+  // add some controllable entities 
   m_Entities.clear();
-  m_Player = std::make_shared<Player>();
-  m_Player->SetPosition(m_Map.TileToWorld(TilePos{25, 20}));
-  m_Entities.push_back(m_Player);
+  auto player = std::make_shared<Player>();
+  player->SetPosition(m_Map.TileToWorld(TilePos{25, 20}));
+  AddEntity(player);
+
+  auto player2 = std::make_shared<Player>();
+  player2->SetPosition(m_Map.TileToWorld(TilePos{50, 20}));
+  AddEntity(player2);
+
+  for (int i = 0; i < 1; i++)
+  {
+    for (int j = 0; j < 10; j++)
+    {
+      auto p = std::make_shared<Player>();
+      p->SetPosition(m_Map.TileToWorld(TilePos{10+5*i, 40+5*j}));
+      AddEntity(p);
+    }
+  }
+
+  // select everything - TODO this is just temporary for testing
+  for (const auto& entity : m_Entities)
+  {
+    m_SelectedEntities.push_back(entity);
+  }
 }
 
 WorldPos PathFindingDemo::GetRandomPosition() const {
   return WorldPos{0.0f, 0.0f}; // totally random!
 }
 
-std::optional<WorldPos> PathFindingDemo::GetMoveTarget() {
-  WorldPos current_player_pos = GetPlayer()->GetPosition();
 
-  if (m_Path.empty()) {
-    return {};
+
+const std::vector<Collision>& PathFindingDemo::GetEntityCollisions()
+{
+  static std::vector<Collision> m_Collisions;
+  m_Collisions.clear();
+
+  for (const auto &entity_A : m_Entities)
+  {
+    for (const auto &entity_B : m_Entities)
+    {
+      if (entity_A == entity_B)
+        continue;
+      if (!entity_A->IsCollidable() || !entity_B->IsCollidable())
+        continue;
+      if (entity_A->CollidesWith(*entity_B))
+      {
+        // handle collision logic
+        m_Collisions.emplace_back(Collision(entity_A, entity_B));
+      }
+    }
   }
-
-  WorldPos next_player_pos = m_Path.front();
-
-  if (current_player_pos.DistanceTo(next_player_pos) > 1.0) {
-    // target not reached yet
-    return next_player_pos;
-  }
-  // target reached, pop it
-  //m_MoveQueue.pop();
-  m_Path.erase(m_Path.begin());
-  // return nothing - if there's next point in the queue,
-  // we'll get it in the next iteration
-  return {};
+  return m_Collisions;
 }
 
-void PathFindingDemo::UpdatePlayerVelocity() {
-  auto player = GetPlayer();
-  auto current_pos = player->GetPosition();
-  double tile_velocity_coeff = m_Map.GetTileVelocityCoeff(current_pos);
-  auto next_pos = GetMoveTarget();
-  WorldPos velocity = WorldPos{};
-  if (next_pos)
-  {
-    velocity = next_pos.value() - current_pos;
-    velocity.Normalize();
-    //LOG_DEBUG("I want to move to: ", next_pos.value(),
-    //          ", velocity: ", velocity);
-  }
-  player->SetActualVelocity(velocity * tile_velocity_coeff);
+
+// Update entity positions, handle collisions
+void PathFindingDemo::UpdateWorld() {
+  
   float time_delta = 1.0f;
-  player->Update(time_delta);
+  
+  for (auto& entity : m_Entities)
+  {
+    // calculate the velocity
+    auto current_pos = entity->GetPosition();
+    double tile_velocity_coeff = m_Map.GetTileVelocityCoeff(current_pos);
+    auto next_pos = entity->GetMoveTarget();
+    WorldPos velocity = WorldPos{};
+    if (next_pos)
+    {
+      velocity = next_pos.value() - current_pos;
+      velocity.Normalize();
+      //LOG_DEBUG("I want to move to: ", next_pos.value(),
+      //          ", velocity: ", velocity);
+    }
+    entity->SetActualVelocity(velocity * tile_velocity_coeff);
+    
+    for (const auto& collision : GetEntityCollisions())
+    {
+      // TODO this loop is quite "hot", is it good idea to use weak_ptr and promote it?
+      auto weak_A = std::get<0>(collision);
+      auto weak_B = std::get<1>(collision);
+      auto A = weak_A.lock();
+      auto B = weak_B.lock();
+      if (A == nullptr || B == nullptr)
+      {
+        continue;
+      }
+      if (!A->IsMovable())
+        continue;
+      // modify actual speed
+      // LOG_DEBUG("Collision: A is ", A, ", B is ", B);
+      auto AB = B->GetPosition() - A->GetPosition();
+      A->ZeroActualVelocityInDirection(AB);
+      // handle logic
+      // TODO
+    } 
+ 
+    // update the position
+    entity->Update(time_delta);
+  }
 }
 
 void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions)
@@ -116,10 +170,19 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions)
     }
     else if (action.type == UserAction::Type::SET_MOVE_TARGET)
     {
-      WorldPos wp = m_Camera.WindowToWorld(action.Argument.position);
-      LOG_INFO("Calculating path to target: ", wp);
-      m_Path = m_PathFinder->CalculatePath(m_Player->GetPosition(), wp);
-      LOG_INFO("Done, path node count: ", m_Path.size());
+      WorldPos target_pos = m_Camera.WindowToWorld(action.Argument.position);
+      for (auto& selected_entity : m_SelectedEntities)
+      {
+        LOG_INFO("Calculating path to target: ", target_pos);
+        if (auto sp = selected_entity.lock())
+        {
+          auto path = m_PathFinder->CalculatePath(sp->GetPosition(), target_pos);
+          sp->SetPath(path);
+          LOG_INFO("Done, path node count: ", path.size());
+        } else {
+          LOG_INFO("Cannot calculate path for destroyed entity (weak_ptr.lock() failed)");
+        }
+      }
     }
     else if (action.type == UserAction::Type::SELECT_PATHFINDER)
     {
@@ -140,5 +203,69 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions)
       m_Camera.Zoom(action.Argument.float_number);
       LOG_INFO("Camera zoom: ", action.Argument.float_number);
     }
+    else if (action.type == UserAction::Type::SELECTION_START)
+    {
+      m_SelectionBox.active = true;
+      m_SelectionBox.start = action.Argument.position;
+      m_SelectionBox.end = action.Argument.position;
+    }
+    else if (action.type == UserAction::Type::SELECTION_END)
+    {
+      m_SelectionBox.end = action.Argument.position;
+      m_SelectionBox.active = false;
+      auto diff = m_SelectionBox.end - m_SelectionBox.start;
+      // here we explicitly change the vector type from WindowPos to WindowSize
+      m_SelectionBox.size = diff.ChangeTag<WindowSizeTag>();
+      WorldPos start = m_Camera.WindowToWorld(m_SelectionBox.start);
+      WorldPos end = m_Camera.WindowToWorld(m_SelectionBox.end);
+      SelectEntitiesInRectangle(start, end);
+    }
+    else if (action.type == UserAction::Type::SELECTION_CHANGE)
+    {
+      m_SelectionBox.end = action.Argument.position;
+      auto diff = m_SelectionBox.end - m_SelectionBox.start;
+      m_SelectionBox.size = diff.ChangeTag<WindowSizeTag>();
+    }
   };
 }
+
+void PathFindingDemo::DeselectEntities()
+{
+  std::for_each(m_SelectedEntities.begin(), m_SelectedEntities.end(), [](auto& x)
+      {
+        if (auto entity = x.lock())
+        entity->Deselect();
+      }
+  );
+  m_SelectedEntities.clear();
+}
+
+void PathFindingDemo::SelectEntitiesInRectangle(WorldPos A, WorldPos B)
+{
+  DeselectEntities();
+  // TODO use colliders for this
+  auto [x_min, x_max] = std::minmax(A.x(), B.x());
+  auto [y_min, y_max] = std::minmax(A.y(), B.y());
+  for (const auto& entity : m_Entities)
+  {
+    const auto& pos = entity->GetPosition();
+    bool x_in_range = x_min < pos.x() && pos.x() < x_max;
+    bool y_in_range = y_min < pos.y() && pos.y() < y_max;
+    if (x_in_range && y_in_range)
+    {
+      m_SelectedEntities.push_back(std::weak_ptr(entity));
+      entity->Select();
+    }
+  }
+  LOG_INFO("Selected ", m_SelectedEntities.size(), " entities");
+}
+
+std::pair<WindowPos, WindowSize> PathFindingDemo::GetSelectionBoxPosSize()
+{
+  const auto& pos = m_SelectionBox.start;
+  WindowPos size_pos = m_SelectionBox.end - m_SelectionBox.start;
+  WindowSize size = size_pos.ChangeTag<WindowSizeTag>();
+  return std::pair(pos, size);
+
+}
+

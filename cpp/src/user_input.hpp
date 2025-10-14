@@ -12,7 +12,19 @@ enum class MouseButton { LEFT = 1, MIDDLE, RIGHT };
 
 class UserAction {
 public:
-  enum class Type { NONE, EXIT, SET_MOVE_TARGET, SELECT_PATHFINDER, CAMERA_PAN, CAMERA_ZOOM };
+
+  enum class Type
+  {
+    NONE,
+    EXIT,
+    SET_MOVE_TARGET,
+    SELECT_PATHFINDER,
+    CAMERA_PAN,
+    CAMERA_ZOOM,
+    SELECTION_START,
+    SELECTION_CHANGE,
+    SELECTION_END
+  };
 
   UserAction() : type(Type::NONE), Argument{.number = 0} {}
   UserAction(Type t) : type(t), Argument{.number = 0} {}
@@ -51,6 +63,7 @@ public:
 
 private:
   std::vector<UserAction> m_Actions;
+  bool m_SelectionActive = false;
 
   void GetActions_keyboard(const SDL_Event&);
   void GetActions_mouse(const SDL_Event&);

@@ -26,6 +26,37 @@ TEST(vec, GetElements) {
   ASSERT_EQ(v1[2], 56);
 }
 
+TEST(vec, ArrayConstruction) {
+  // Test construction from std::array
+  std::array<float, 3> arr3{1.5f, 2.5f, 3.5f};
+  vec3 v1(arr3);
+  
+  ASSERT_FLOAT_EQ(v1[0], 1.5f);
+  ASSERT_FLOAT_EQ(v1[1], 2.5f);
+  ASSERT_FLOAT_EQ(v1[2], 3.5f);
+  
+  // Test with 2D vector
+  std::array<float, 2> arr2{10.0f, 20.0f};
+  vec2 v2(arr2);
+  
+  ASSERT_FLOAT_EQ(v2[0], 10.0f);
+  ASSERT_FLOAT_EQ(v2[1], 20.0f);
+  
+  // Test with integer vector
+  std::array<int32_t, 4> arr4{1, 2, 3, 4};
+  ivec4 v4(arr4);
+  
+  ASSERT_EQ(v4[0], 1);
+  ASSERT_EQ(v4[1], 2);
+  ASSERT_EQ(v4[2], 3);
+  ASSERT_EQ(v4[3], 4);
+  
+  // Test that original array is unchanged
+  ASSERT_FLOAT_EQ(arr3[0], 1.5f);
+  ASSERT_FLOAT_EQ(arr3[1], 2.5f);
+  ASSERT_FLOAT_EQ(arr3[2], 3.5f);
+}
+
 
 TEST(vec, equalEpsilon) {
   // Test equalEpsilon
@@ -428,6 +459,43 @@ TEST(vec, ChainedOperations) {
   a = a * 0.5f;
   ASSERT_FLOAT_EQ(a[0], 2.0f);
   ASSERT_FLOAT_EQ(a[1], 3.0f);
+}
+
+TEST(vec, ChangeTag) {
+  // Test changing tag from WorldPos to WindowPos
+  WorldPos world_pos{100.0f, 200.0f};
+  WindowPos window_pos = world_pos.ChangeTag<WindowPosTag>();
+  
+  // Data should be preserved
+  ASSERT_FLOAT_EQ(window_pos[0], 100.0f);
+  ASSERT_FLOAT_EQ(window_pos[1], 200.0f);
+  
+  // Original should be unchanged
+  ASSERT_FLOAT_EQ(world_pos[0], 100.0f);
+  ASSERT_FLOAT_EQ(world_pos[1], 200.0f);
+  
+  // Test changing tag from TilePos to another tag
+  TilePos tile_pos{5, 10};
+  auto generic_pos = tile_pos.ChangeTag<Any>();
+  
+  ASSERT_EQ(generic_pos[0], 5);
+  ASSERT_EQ(generic_pos[1], 10);
+  
+  // Test with 3D vector and custom tag
+  struct CustomTag {};
+  vec3 original{1.5f, 2.5f, 3.5f};
+  vec<float, 3, CustomTag> custom_tagged = original.ChangeTag<CustomTag>();
+  
+  ASSERT_FLOAT_EQ(custom_tagged[0], 1.5f);
+  ASSERT_FLOAT_EQ(custom_tagged[1], 2.5f);
+  ASSERT_FLOAT_EQ(custom_tagged[2], 3.5f);
+  
+  // Test that we can change back
+  vec3 back_to_original = custom_tagged.ChangeTag<Any>();
+  
+  ASSERT_FLOAT_EQ(back_to_original[0], 1.5f);
+  ASSERT_FLOAT_EQ(back_to_original[1], 2.5f);
+  ASSERT_FLOAT_EQ(back_to_original[2], 3.5f);
 }
 
 TEST(Matrix, DefaultConstruction) {

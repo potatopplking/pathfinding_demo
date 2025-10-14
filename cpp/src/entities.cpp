@@ -46,6 +46,47 @@ void Entity::Update(float time_delta) {
   m_Position += m_ActualVelocity * time_delta;
 }
 
+std::optional<WorldPos> Entity::GetMoveTarget()
+{
+  auto& path = GetPath();
+  if (path.empty()) {
+    return {};
+  }
+
+  WorldPos current_pos = GetPosition();
+  WorldPos next_pos = path.front();
+
+  if (current_pos.DistanceTo(next_pos) > 1.0) {
+    // target not reached yet
+    return next_pos;
+  }
+  // target reached, pop it
+  //m_MoveQueue.pop();
+  path.erase(path.begin());
+  // return nothing - if there's next point in the queue,
+  // we'll get it in the next iteration
+  return {};
+}
+
+bool Entity::CollidesWith(const Entity& other) const
+{
+  const auto& A = *this;
+  const auto& B = other;
+
+  auto position_A = A.GetPosition();
+  auto position_B = B.GetPosition();
+  auto distance_sq = position_A.DistanceSquared(position_B);
+  auto collision_distance_sq =
+      A.GetCollisionRadiusSquared() +
+      B.GetCollisionRadiusSquared() +
+      2 * A.GetCollisionRadius() * B.GetCollisionRadius();
+  if (distance_sq < collision_distance_sq)
+  {
+    return true;
+  }
+  return false;
+}
+
 Player::Player() {
   LOG_DEBUG(".");
   if (m_Sprite == nullptr) {

@@ -5,10 +5,12 @@
 #include <iostream>
 #include <memory>
 #include <string_view>
+#include <optional>
 
 #include "log.hpp"
 #include "math.hpp"
 #include "sprite.hpp"
+#include "pathfinder/base.hpp"
 
 class Entity {
 public:
@@ -56,14 +58,29 @@ public:
 
   void ZeroActualVelocityInDirection(WorldPos direction);
 
+  const pathfinder::Path& GetPath() const { return m_Path; }
+  pathfinder::Path& GetPath() { return m_Path; }
+  void SetPath(pathfinder::Path& path) { m_Path = path; }
+  std::optional<WorldPos> GetMoveTarget();
+
+  bool CollidesWith(const Entity& other) const;
+
+  bool IsCollisionBoxVisible() const { return m_CollisionBoxVisible; }
+
+  void Select() { m_Selected = true; }
+  void Deselect() { m_Selected = false; }
+  bool IsSelected() const { return m_Selected; }
+
 protected:
   WorldPos m_Position;
   WorldPos m_ActualVelocity;
   WorldPos m_RequestedVelocity;
+  pathfinder::Path m_Path;
 
 private:
   bool m_FlagExpired = false;
-  static constexpr float m_CollisionRadiusSq = 1000.0f;
+  bool m_CollisionBoxVisible = true;
+  bool m_Selected = false;
 };
 
 class Player final : public Entity {
@@ -75,7 +92,7 @@ public:
   constexpr Entity::Type GetType() const override {
     return Entity::Type::PLAYER;
   }
-  constexpr float GetCollisionRadius() const override { return 50.0f; }
+  constexpr float GetCollisionRadius() const override { return 25.0f; }
   bool IsMovable() const override { return true; }
   bool IsCollidable() const override { return true; }
 
