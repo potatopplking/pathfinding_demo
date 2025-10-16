@@ -62,11 +62,18 @@ pacman -S glew sdl3 sdl3_image
 #### Build
 
 ```bash
-cmake
+cmake -B build
 cmake --build build -j 16
 ```
 
-Optionally you can also build the compilation database (TODO)
+Optionally you can also use options:
+
+* `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON` to enable compile database export
+* `-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++` to use clang
+
+```
+cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=O  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+``````
 
 Run the `pathfinding` binary in the `build` folder.
 
