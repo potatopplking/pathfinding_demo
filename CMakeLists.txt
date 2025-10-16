@@ -134,31 +134,47 @@ add_custom_command(TARGET pathfinding_demo POST_BUILD
     $<TARGET_FILE_DIR:pathfinding_demo>/resources
 )
 
-# Test executable
-add_executable(tests cpp/test/test.cpp)
+# Unit tests executable
+add_executable(unit_tests 
+    cpp/test/test.cpp
+)
 if(WIN32)
-    target_link_libraries(tests GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    target_link_libraries(unit_tests GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 else()
-    target_link_libraries(tests GTest::gtest GTest::gtest_main)
+    target_link_libraries(unit_tests GTest::gtest GTest::gtest_main)
+endif()
+
+# Performance tests executable
+add_executable(performance_tests 
+    cpp/test/collision_performance.cpp
+)
+if(WIN32)
+    target_link_libraries(performance_tests GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+else()
+    target_link_libraries(performance_tests GTest::gtest GTest::gtest_main)
 endif()
 
 # Enable testing
 enable_testing()
-add_test(NAME unit_tests COMMAND tests)
+add_test(NAME unit_tests COMMAND unit_tests)
+add_test(NAME performance_tests COMMAND performance_tests)
 
 # Compiler-specific options with MSVC support
 if(MSVC)
     # MSVC-specific flags: disable permissive mode, enable high warning level
     target_compile_options(pathfinding_demo PRIVATE /W4 /permissive-)
-    target_compile_options(tests PRIVATE /W4 /permissive-)
+    target_compile_options(unit_tests PRIVATE /W4 /permissive-)
+    target_compile_options(performance_tests PRIVATE /W4 /permissive-)
     
     # Additional MSVC flags for C++23 and modern standards
     target_compile_options(pathfinding_demo PRIVATE /Zc:__cplusplus /Zc:preprocessor)
-    target_compile_options(tests PRIVATE /Zc:__cplusplus /Zc:preprocessor)
+    target_compile_options(unit_tests PRIVATE /Zc:__cplusplus /Zc:preprocessor)
+    target_compile_options(performance_tests PRIVATE /Zc:__cplusplus /Zc:preprocessor)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     # GCC/Clang flags
     target_compile_options(pathfinding_demo PRIVATE -Wall -Wextra -Wpedantic)
-    target_compile_options(tests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(unit_tests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(performance_tests PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 # Platform-specific build configurations
