@@ -107,13 +107,6 @@ if(WIN32)
         ${GLEW_TARGET}
     )
 
-    # Copy resources after build (Windows only)
-    add_custom_command(TARGET pathfinding_demo POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/cpp/resources
-        $<TARGET_FILE_DIR:pathfinding_demo>/resources
-    )
-
     # Add compile flags for Windows (vcpkg handles most of this automatically)
     if(MSVC)
         if(SDL3_CFLAGS_OTHER)
@@ -132,6 +125,14 @@ else()
     # Add compile flags for Unix/Linux
     target_compile_options(pathfinding_demo PRIVATE ${SDL3_CFLAGS_OTHER})
 endif()
+
+
+# Copy resources after build
+add_custom_command(TARGET pathfinding_demo POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/cpp/resources
+    $<TARGET_FILE_DIR:pathfinding_demo>/resources
+)
 
 # Test executable
 add_executable(tests cpp/test/test.cpp)
