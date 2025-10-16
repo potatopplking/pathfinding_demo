@@ -265,6 +265,21 @@ public:
     return vec<T,N,TargetTag>(m_Array);
   }
 
+  // Structured binding support for N == 2
+  template<size_t I>
+  const T& get() const
+    requires(N == 2 && I < 2)
+  {
+    return m_Array[I];
+  }
+
+  template<size_t I>
+  T& get()
+    requires(N == 2 && I < 2)
+  {
+    return m_Array[I];
+  }
+
 private:
   std::array<T, N> m_Array;
 };
@@ -409,3 +424,25 @@ public:
 private:
     std::array<vec_type, N> m_Array;
 };
+
+// Structured binding support for vec<T, 2, Tag>
+namespace std {
+  template<typename T, typename Tag>
+  struct tuple_size<vec<T, 2, Tag>> : integral_constant<size_t, 2> {};
+
+  template<size_t I, typename T, typename Tag>
+  struct tuple_element<I, vec<T, 2, Tag>> {
+    using type = T;
+  };
+}
+
+// ADL-based get for structured bindings
+template<size_t I, typename T, typename Tag>
+const T& get(const vec<T, 2, Tag>& v) {
+  return v.template get<I>();
+}
+
+template<size_t I, typename T, typename Tag>
+T& get(vec<T, 2, Tag>& v) {
+  return v.template get<I>();
+}
