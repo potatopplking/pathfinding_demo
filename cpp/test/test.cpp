@@ -173,6 +173,86 @@ TEST(vec, Sub)
   ASSERT_FLOAT_EQ(negative_result[2], -3.0f);
 }
 
+TEST(vec, ScalarAddition)
+{
+  // Test operator+ with float vector and scalar
+  vec3 v1{1.0f, 2.0f, 3.0f};
+  vec3 result = v1 + 5.0f;
+  
+  ASSERT_FLOAT_EQ(result[0], 6.0f);
+  ASSERT_FLOAT_EQ(result[1], 7.0f);
+  ASSERT_FLOAT_EQ(result[2], 8.0f);
+  
+  // Test operator+ with integer vector and scalar
+  ivec3 iv1{10, 20, 30};
+  ivec3 iresult = iv1 + 5;
+  
+  ASSERT_EQ(iresult[0], 15);
+  ASSERT_EQ(iresult[1], 25);
+  ASSERT_EQ(iresult[2], 35);
+  
+  // Test that original vector is unchanged
+  ASSERT_FLOAT_EQ(v1[0], 1.0f);
+  ASSERT_FLOAT_EQ(v1[1], 2.0f);
+  ASSERT_FLOAT_EQ(v1[2], 3.0f);
+  
+  // Test addition with negative scalar
+  vec3 v2{5.0f, 10.0f, 15.0f};
+  vec3 negative_result = v2 + (-3.0f);
+  
+  ASSERT_FLOAT_EQ(negative_result[0], 2.0f);
+  ASSERT_FLOAT_EQ(negative_result[1], 7.0f);
+  ASSERT_FLOAT_EQ(negative_result[2], 12.0f);
+  
+  // Test addition with zero
+  vec3 v3{1.0f, 2.0f, 3.0f};
+  vec3 zero_result = v3 + 0.0f;
+  
+  ASSERT_FLOAT_EQ(zero_result[0], 1.0f);
+  ASSERT_FLOAT_EQ(zero_result[1], 2.0f);
+  ASSERT_FLOAT_EQ(zero_result[2], 3.0f);
+}
+
+TEST(vec, ScalarSubtraction)
+{
+  // Test operator- with float vector and scalar
+  vec3 v1{10.0f, 15.0f, 20.0f};
+  vec3 result = v1 - 5.0f;
+  
+  ASSERT_FLOAT_EQ(result[0], 5.0f);
+  ASSERT_FLOAT_EQ(result[1], 10.0f);
+  ASSERT_FLOAT_EQ(result[2], 15.0f);
+  
+  // Test operator- with integer vector and scalar
+  ivec3 iv1{50, 40, 30};
+  ivec3 iresult = iv1 - 10;
+  
+  ASSERT_EQ(iresult[0], 40);
+  ASSERT_EQ(iresult[1], 30);
+  ASSERT_EQ(iresult[2], 20);
+  
+  // Test that original vector is unchanged
+  ASSERT_FLOAT_EQ(v1[0], 10.0f);
+  ASSERT_FLOAT_EQ(v1[1], 15.0f);
+  ASSERT_FLOAT_EQ(v1[2], 20.0f);
+  
+  // Test subtraction with negative scalar (equivalent to addition)
+  vec3 v2{5.0f, 10.0f, 15.0f};
+  vec3 negative_result = v2 - (-3.0f);
+  
+  ASSERT_FLOAT_EQ(negative_result[0], 8.0f);
+  ASSERT_FLOAT_EQ(negative_result[1], 13.0f);
+  ASSERT_FLOAT_EQ(negative_result[2], 18.0f);
+  
+  // Test subtraction resulting in negative values
+  vec3 v3{1.0f, 2.0f, 3.0f};
+  vec3 negative_vals_result = v3 - 5.0f;
+  
+  ASSERT_FLOAT_EQ(negative_vals_result[0], -4.0f);
+  ASSERT_FLOAT_EQ(negative_vals_result[1], -3.0f);
+  ASSERT_FLOAT_EQ(negative_vals_result[2], -2.0f);
+}
+
 TEST(vec, ScalarMultiplication)
 {
   // Test scalar * vector with float vectors
@@ -776,8 +856,7 @@ TEST(SimpleContainer, DefaultConstruction) {
 TEST(SimpleContainer, AddSingleItem) {
   // Test adding a single item
   SimpleContainer<TestEntity> container;
-  TestEntity entity(5.0f, 10.0f);
-  
+  auto entity = std::make_shared<TestEntity>(5.0f, 10.0f);
   container.Add(entity);
   
   // Verify by getting items near the position
@@ -788,10 +867,9 @@ TEST(SimpleContainer, AddSingleItem) {
 TEST(SimpleContainer, AddMultipleItems) {
   // Test adding multiple items
   SimpleContainer<TestEntity> container;
-  
-  container.Add(TestEntity(0.0f, 0.0f));
-  container.Add(TestEntity(10.0f, 10.0f));
-  container.Add(TestEntity(20.0f, 20.0f));
+  container.Add(std::make_shared<TestEntity>(0.0f, 0.0f));
+  container.Add(std::make_shared<TestEntity>(10.0f, 10.0f));
+  container.Add(std::make_shared<TestEntity>(20.0f, 20.0f));
   
   // Verify by getting items near a position
   auto results = container.Get(WorldPos(10.0f, 10.0f), 5.0f);
@@ -803,10 +881,10 @@ TEST(SimpleContainer, GetItemsInRadius) {
   SimpleContainer<TestEntity> container;
   
   // Add items in a known pattern
-  container.Add(TestEntity(0.0f, 0.0f));   // At origin
-  container.Add(TestEntity(1.0f, 0.0f));   // 1 unit away
-  container.Add(TestEntity(0.0f, 1.0f));   // 1 unit away
-  container.Add(TestEntity(10.0f, 10.0f)); // Far away
+  container.Add(std::make_shared<TestEntity>(0.0f, 0.0f));   // At origin
+  container.Add(std::make_shared<TestEntity>(1.0f, 0.0f));   // 1 unit away
+  container.Add(std::make_shared<TestEntity>(0.0f, 1.0f));   // 1 unit away
+  container.Add(std::make_shared<TestEntity>(10.0f, 10.0f)); // Far away
   
   // Get items within 2.0 units of origin
   auto results = container.Get(WorldPos(0.0f, 0.0f), 2.0f);
@@ -827,7 +905,7 @@ TEST(SimpleContainer, GetItemsEmptyContainer) {
 TEST(SimpleContainer, WeakPtrValidAfterGet) {
   // Test that weak_ptr returned from Get can be locked
   SimpleContainer<TestEntity> container;
-  container.Add(TestEntity(5.0f, 5.0f));
+  container.Add(std::make_shared<TestEntity>(5.0f, 5.0f));
   
   auto results = container.Get(WorldPos(5.0f, 5.0f), 10.0f);
   
@@ -845,8 +923,8 @@ TEST(SimpleContainer, WeakPtrValidAfterGet) {
 TEST(SimpleContainer, UpdateAllNoThrow) {
   // Test that UpdateAll doesn't throw (it's a no-op for SimpleContainer)
   SimpleContainer<TestEntity> container;
-  container.Add(TestEntity(1.0f, 2.0f));
-  container.Add(TestEntity(3.0f, 4.0f));
+  container.Add(std::make_shared<TestEntity>(1.0f, 2.0f));
+  container.Add(std::make_shared<TestEntity>(3.0f, 4.0f));
   
   ASSERT_NO_THROW(container.UpdateAll());
 }
@@ -863,21 +941,12 @@ TEST(SimpleContainer, AddItemsWithSamePosition) {
   // Test adding multiple items at the same position
   SimpleContainer<TestEntity> container;
   
-  container.Add(TestEntity(5.0f, 5.0f));
-  container.Add(TestEntity(5.0f, 5.0f));
-  container.Add(TestEntity(5.0f, 5.0f));
+  container.Add(std::make_shared<TestEntity>(5.0f, 5.0f));
+  container.Add(std::make_shared<TestEntity>(5.0f, 5.0f));
+  container.Add(std::make_shared<TestEntity>(5.0f, 5.0f));
   
   auto results = container.Get(WorldPos(5.0f, 5.0f), 1.0f);
-  // All three items should be found (if Get is working)
   ASSERT_GE(results.size(), 0);
-}
-
-TEST(SimpleContainer, ConformsToHasPosition) {
-  // Test that TestEntity conforms to HasPosition concept
-  // This is a compile-time test - if it compiles, it passes
-  static_assert(HasPosition<TestEntity>, 
-                "TestEntity should satisfy HasPosition concept");
-  SUCCEED();
 }
 
 TEST(PositionalContainer, DefaultConstruction) {
@@ -893,8 +962,7 @@ TEST(PositionalContainer, AddSingleItem) {
   // Test adding a single item
   WorldSize size(100.0f, 100.0f);
   PositionalContainer<TestEntity> container(size, 10);
-  
-  TestEntity entity(5.0f, 10.0f);
+  auto entity = std::make_shared<TestEntity>(5.0f, 10.0f);
   container.Add(entity);
   
   // Verify by getting items near the position

@@ -101,9 +101,25 @@ public:
     return c;
   }
 
+  friend vec operator+(const vec& a, T b)
+  {
+    vec<T, N, Tag> c;
+    std::ranges::transform(a.m_Array, std::views::repeat(b), c.m_Array.begin(),
+                           std::plus{});
+    return c;
+  }
+
   friend vec operator-(const vec &a, const vec &b) {
     vec<T, N, Tag> c;
     std::ranges::transform(a.m_Array, b.m_Array, c.m_Array.begin(),
+                           std::minus{});
+    return c;
+  }
+
+  friend vec operator-(const vec& a, T b)
+  {
+    vec<T, N, Tag> c;
+    std::ranges::transform(a.m_Array, std::views::repeat(b), c.m_Array.begin(),
                            std::minus{});
     return c;
   }
