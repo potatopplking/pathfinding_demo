@@ -26,7 +26,7 @@ void Sprite::LoadImage(std::string path, WorldPos image_center) {
       IMG_Load(path.c_str()), SDL_DestroySurface);
 
   if (surface == nullptr) {
-    LOG_ERROR("IMG_Load failed to load ", path);
+    LOG_ERROR("IMG_Load failed: ", SDL_GetError());
     throw std::runtime_error("Failed to load resources");
   }
 
