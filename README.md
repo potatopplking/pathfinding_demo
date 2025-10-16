@@ -23,11 +23,31 @@ Contains the same demo as the standalone script and some notes. Since Github sup
 
 ## C++
 
-Work in progress. At the moment Linux build only.
+### Windows
 
-### Build
+#### Dependencies
 
-#### Install prerequisities
+* `vcpkg` needs to be installed and `VCPKG_ROOT` set. See the [installation instructions](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started?pivots=shell-powershell).
+* Visual Studio with Desktop development with C++ workload (or MSVC Build Tools)
+
+#### Build - option 1: CLI
+
+Run "Developer Command Prompt for VS 20xx":
+
+```cmd
+cmake --preset=vcpkg
+cmake --build build
+```
+
+Run the `pathfinding.exe` binary in the `build` folder.
+
+#### Build - option 2: Visual Studio
+
+TODO
+
+### Linux
+
+#### Dependencies
 
 * SDL3
 * SDL3-image
@@ -39,16 +59,14 @@ e.g. on Archlinux:
 pacman -S glew sdl3 sdl3_image
 ```
 
-#### Compile
+#### Build
 
-In the [cpp](./cpp/) folder, run [make](./cpp/Makefile)
-
-```
-cd cpp/
-make -j $(nproc)
+```bash
+cmake
+cmake --build build -j 16
 ```
 
-### Run
+Optionally you can also build the compilation database (TODO)
 
-Run the `pathfinding` binary in the [cpp](./cpp/) folder.
+Run the `pathfinding` binary in the `build` folder.
 
