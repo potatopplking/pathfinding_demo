@@ -185,7 +185,7 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Zi /DNDEBUG")
     set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /DNDEBUG")
 else()
-    # GCC/Clang flags
-    set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+    # GCC/Clang flags with extended debugging symbols
+    set(CMAKE_CXX_FLAGS_DEBUG "-ggdb3 -O0")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 endif()
