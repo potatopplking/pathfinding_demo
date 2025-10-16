@@ -3,6 +3,9 @@
 #include <vector>
 #include <memory>
 #include <cstdlib>
+#include <cmath>
+#include <algorithm>
+#include <iterator>
 
 #include "math.hpp"
 #include "log.hpp"
@@ -20,11 +23,12 @@ concept HasCollisions = requires(T t) {
 
 template <typename T>
 requires HasPosition<T>
+
 class IPositionalContainer
 {
 public:
   virtual ~IPositionalContainer() = default;
-  virtual bool Add(const T& t) = 0;
+  virtual bool Add(std::shared_ptr<T> t) = 0;
   virtual std::vector<std::weak_ptr<T>> Get(const WorldPos& p, float radius) = 0;
   virtual void UpdateAll() = 0;
   virtual void Update(std::shared_ptr<T> item) = 0;
@@ -42,9 +46,10 @@ template <typename T>
 class SimpleContainer : IPositionalContainer<T>
 {
 public:
-  bool Add(const T& t) override
+  bool Add(std::shared_ptr<T> t) override
   {
-    m_Items.push_back(std::make_shared<T>(t));
+    m_Items.push_back(t);
+    return true;
   }
   
   std::vector<std::weak_ptr<T>> Get(const WorldPos& center, float radius) override
@@ -84,42 +89,62 @@ public:
     m_Grid.reserve(chunks);
     for (size_t i = 0; i < chunks; i++)
     {
-      //m_Grid.push_back(std::vector<vector_wptr>{chunks});
       m_Grid.emplace_back(chunks);
       for (size_t j = 0; j < chunks; j++)
       {
-        // let's try reserving place for 16 items
         m_Grid[i][j].reserve(16);
       }
     }
   }
 
   // calling Add on object that is already in the container is UB
-  bool Add(const T& item) override
+  bool Add(std::shared_ptr<T> item) override
   {
-    const auto& world_pos = item.GetPosition();
+    const auto& world_pos = item->GetPosition();
     if (!CheckBounds(world_pos))
     {
       return false;
     }
-    auto ptr = std::make_shared<T>(item);
-    m_Items.push_back(ptr);
+    m_Items.push_back(item);
     auto coords = GetCoords(world_pos);
-    // here we assume that the object is not already in the grid!
-    m_Grid[coords.x()][coords.y()].push_back(ptr);
-
+    m_Grid[coords.x()][coords.y()].push_back(item);
     // TODO should we call Update instead?
-    //Update(ptr);
+    //Update(item);
+    return true;
   }
   
   std::vector<std::weak_ptr<T>> Get(const WorldPos& center, float radius) override
   {
-    return vector_wptr{};
+    vector_wptr output_vec{};
+
+    Get(output_vec, center, radius);
   }
 
   void Get(std::vector<std::weak_ptr<T>>& output_vec, const WorldPos& center, float radius)
   {
+    output_vec.clear();
+    const WorldPos A = center + radius; 
+    const WorldPos B = center - radius; 
+    if (!CheckBounds(A) || !CheckBounds(B))
+    {
+      return;
+    }
+    auto [x_min_f, x_max_f] = std::minmax(A.x(), B.x());
+    auto [y_min_f, y_max_f] = std::minmax(A.y(), B.y());
 
+    size_t x_min = static_cast<size_t>(std::floor(x_min_f));
+    size_t x_max = static_cast<size_t>(std::ceil(x_max_f));
+    size_t y_min = static_cast<size_t>(std::floor(y_min_f));
+    size_t y_max = static_cast<size_t>(std::ceil(y_max_f));
+
+    // TODO this goes through more positions than we need
+    for (size_t x = x_min; x < x_max; x++)
+    {
+      for (size_t y = y_min; y < y_max; y++)
+      {
+        std::ranges::copy(m_Grid[x][y], std::back_inserter(output_vec));
+      }
+    }
   }
 
   void UpdateAll() override
@@ -166,7 +191,5 @@ private:
   WorldSize m_GridStep;
   size_t m_ChunksPerAxis;
   std::vector<std::shared_ptr<T>> m_Items;
-  
-
   grid_type m_Grid;
 };
