@@ -3,6 +3,9 @@
 #include <iostream>
 #include <iomanip>
 
+
+#include "positional_container.hpp"
+
 // TODO: Add necessary includes for collision testing
 // #include "collision_shapes.hpp"
 // #include "entities.hpp"
@@ -74,8 +77,29 @@ void benchmark_function(const std::string& name, int iterations, Func func) {
               << " ops/sec" << std::endl;
 }
 
+/**
+ * @brief Simple dummy class that conforms to HasPosition concept
+ * Used for testing PositionalContainer without heavy dependencies
+ */
+class Dummy {
+public:
+    Dummy() : m_Position(0.0f, 0.0f) {}
+    Dummy(float x, float y) : m_Position(x, y) {}
+    Dummy(WorldPos pos) : m_Position(pos) {}
+    
+    WorldPos GetPosition() const { return m_Position; }
+    void SetPosition(WorldPos pos) { m_Position = pos; }
+    
+private:
+    WorldPos m_Position;
+};
+
 // Example test function 1
 void test_function_1() {
+  
+    PositionalContainer<Dummy> pos_cont{WorldSize{10.0f, 10.0f}, 10}; 
+    SimpleContainer<Dummy> simp_cont; 
+
     // TODO: Implement actual collision test
     volatile int sum = 0;
     for (int i = 0; i < 1000; ++i) {
