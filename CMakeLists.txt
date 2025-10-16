@@ -25,18 +25,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Platform-specific package finding
 if(WIN32)
-    # Windows: Use vcpkg-compatible find_package
-    # Note: These packages should be installed via vcpkg:
-    # vcpkg install sdl3 sdl3-image glew opengl gtest
-    find_package(SDL3 REQUIRED)
-    find_package(SDL3_image REQUIRED)
+    # Windows: Use vcpkg-compatible find_package with CONFIG
+    find_package(SDL3 CONFIG REQUIRED)
+    find_package(SDL3_image CONFIG REQUIRED)
     find_package(OpenGL REQUIRED)
     find_package(GLEW REQUIRED)
-    find_package(GTest REQUIRED)
+    find_package(GTest CONFIG REQUIRED)
     
     # Set vcpkg target names for consistent linking
     set(SDL3_TARGET SDL3::SDL3)
-    set(SDL3_IMAGE_TARGET SDL3_image::SDL3_image)
+    set(SDL3_IMAGE_TARGET $<IF:$<TARGET_EXISTS:SDL3_image::SDL3_image-shared>,SDL3_image::SDL3_image-shared,SDL3_image::SDL3_image-static>)
     set(GLEW_TARGET GLEW::GLEW)
 else()
     # Linux/Unix: Use pkg-config
@@ -108,10 +106,16 @@ if(WIN32)
         OpenGL::GL
         ${GLEW_TARGET}
     )
-    
+
+    # Copy resources after build (Windows only)
+    add_custom_command(TARGET pathfinding_demo POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/cpp/resources
+        $<TARGET_FILE_DIR:pathfinding_demo>/resources
+    )
+
     # Add compile flags for Windows (vcpkg handles most of this automatically)
     if(MSVC)
-        # vcpkg sets most flags automatically, but we can add SDL3 specific ones if needed
         if(SDL3_CFLAGS_OTHER)
             target_compile_options(pathfinding_demo PRIVATE ${SDL3_CFLAGS_OTHER})
         endif()
@@ -131,7 +135,11 @@ endif()
 
 # Test executable
 add_executable(tests cpp/test/test.cpp)
-target_link_libraries(tests GTest::gtest GTest::gtest_main)
+if(WIN32)
+    target_link_libraries(tests GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+else()
+    target_link_libraries(tests GTest::gtest GTest::gtest_main)
+endif()
 
 # Enable testing
 enable_testing()
