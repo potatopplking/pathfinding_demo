@@ -920,21 +920,67 @@ TEST(SimpleContainer, WeakPtrValidAfterGet) {
   }
 }
 
-TEST(SimpleContainer, UpdateAllNoThrow) {
-  // Test that UpdateAll doesn't throw (it's a no-op for SimpleContainer)
+TEST(SimpleContainer, UpdateAll) {
+  // Test that UpdateAll properly updates item positions
+  // For SimpleContainer, Update is a no-op but Get should still find moved items
   SimpleContainer<TestEntity> container;
-  container.Add(std::make_shared<TestEntity>(1.0f, 2.0f));
-  container.Add(std::make_shared<TestEntity>(3.0f, 4.0f));
   
-  ASSERT_NO_THROW(container.UpdateAll());
+  auto item1 = std::make_shared<TestEntity>(10.0f, 10.0f);
+  auto item2 = std::make_shared<TestEntity>(20.0f, 20.0f);
+  container.Add(item1);
+  container.Add(item2);
+  
+  // Verify items exist at original positions
+  auto results_old1 = container.Get(WorldPos(10.0f, 10.0f), 1.0f);
+  auto results_old2 = container.Get(WorldPos(20.0f, 20.0f), 1.0f);
+  ASSERT_GE(results_old1.size(), 1);
+  ASSERT_GE(results_old2.size(), 1);
+  
+  // Change positions
+  item1->SetPosition(WorldPos(50.0f, 50.0f));
+  item2->SetPosition(WorldPos(60.0f, 60.0f));
+  
+  // Call UpdateAll
+  container.UpdateAll();
+  
+  // For SimpleContainer, items should still be found at new positions
+  // (since Get checks actual item positions, not cached locations)
+  auto results_new1 = container.Get(WorldPos(50.0f, 50.0f), 1.0f);
+  auto results_new2 = container.Get(WorldPos(60.0f, 60.0f), 1.0f);
+  ASSERT_GE(results_new1.size(), 1);
+  ASSERT_GE(results_new2.size(), 1);
+  
+  // Items should NOT be found at old positions anymore
+  auto results_old_check1 = container.Get(WorldPos(10.0f, 10.0f), 1.0f);
+  auto results_old_check2 = container.Get(WorldPos(20.0f, 20.0f), 1.0f);
+  ASSERT_EQ(results_old_check1.size(), 0);
+  ASSERT_EQ(results_old_check2.size(), 0);
 }
 
-TEST(SimpleContainer, UpdateNoThrow) {
-  // Test that Update doesn't throw (it's a no-op for SimpleContainer)
+TEST(SimpleContainer, Update) {
+  // Test that Update properly handles a single item position change
   SimpleContainer<TestEntity> container;
-  auto item = std::make_shared<TestEntity>(1.0f, 2.0f);
   
-  ASSERT_NO_THROW(container.Update(item));
+  auto item = std::make_shared<TestEntity>(15.0f, 15.0f);
+  container.Add(item);
+  
+  // Verify item exists at original position
+  auto results_old = container.Get(WorldPos(15.0f, 15.0f), 1.0f);
+  ASSERT_GE(results_old.size(), 1);
+  
+  // Change position
+  item->SetPosition(WorldPos(75.0f, 75.0f));
+  
+  // Call Update
+  container.Update(item);
+  
+  // Item should be found at new position
+  auto results_new = container.Get(WorldPos(75.0f, 75.0f), 1.0f);
+  ASSERT_GE(results_new.size(), 1);
+  
+  // Item should NOT be found at old position
+  auto results_old_check = container.Get(WorldPos(15.0f, 15.0f), 1.0f);
+  ASSERT_EQ(results_old_check.size(), 0);
 }
 
 TEST(SimpleContainer, AddItemsWithSamePosition) {
@@ -946,7 +992,7 @@ TEST(SimpleContainer, AddItemsWithSamePosition) {
   container.Add(std::make_shared<TestEntity>(5.0f, 5.0f));
   
   auto results = container.Get(WorldPos(5.0f, 5.0f), 1.0f);
-  ASSERT_GE(results.size(), 0);
+  ASSERT_EQ(results.size(), 3);
 }
 
 TEST(PositionalContainer, DefaultConstruction) {
@@ -1031,26 +1077,67 @@ TEST(PositionalContainer, WeakPtrValidAfterGet) {
   }
 }
 
-TEST(PositionalContainer, UpdateAllNoThrow) {
-  // Test that UpdateAll doesn't throw
+TEST(PositionalContainer, UpdateAll) {
+  // Test that UpdateAll properly updates spatial index after position changes
   WorldSize size(100.0f, 100.0f);
   PositionalContainer<TestEntity> container(size, 10);
   
-  container.Add(std::make_shared<TestEntity>(10.0f, 20.0f));
-  container.Add(std::make_shared<TestEntity>(30.0f, 40.0f));
+  auto item1 = std::make_shared<TestEntity>(15.0f, 15.0f);
+  auto item2 = std::make_shared<TestEntity>(25.0f, 25.0f);
+  container.Add(item1);
+  container.Add(item2);
   
-  ASSERT_NO_THROW(container.UpdateAll());
+  // Verify items exist at original positions
+  auto results_old1 = container.Get(WorldPos(15.0f, 15.0f), 2.0f);
+  auto results_old2 = container.Get(WorldPos(25.0f, 25.0f), 2.0f);
+  ASSERT_GE(results_old1.size(), 1);
+  ASSERT_GE(results_old2.size(), 1);
+  
+  // Change positions to different grid chunks
+  item1->SetPosition(WorldPos(65.0f, 65.0f));
+  item2->SetPosition(WorldPos(75.0f, 75.0f));
+  
+  // Call UpdateAll to refresh spatial index
+  container.UpdateAll();
+  
+  // Items should be found at new positions
+  auto results_new1 = container.Get(WorldPos(65.0f, 65.0f), 2.0f);
+  auto results_new2 = container.Get(WorldPos(75.0f, 75.0f), 2.0f);
+  ASSERT_GE(results_new1.size(), 1);
+  ASSERT_GE(results_new2.size(), 1);
+  
+  // Items should NOT be found at old positions anymore
+  auto results_old_check1 = container.Get(WorldPos(15.0f, 15.0f), 2.0f);
+  auto results_old_check2 = container.Get(WorldPos(25.0f, 25.0f), 2.0f);
+  ASSERT_EQ(results_old_check1.size(), 0);
+  ASSERT_EQ(results_old_check2.size(), 0);
 }
 
-TEST(PositionalContainer, UpdateNoThrow) {
-  // Test that Update doesn't throw
+TEST(PositionalContainer, Update) {
+  // Test that Update properly updates spatial index for a single item
   WorldSize size(100.0f, 100.0f);
   PositionalContainer<TestEntity> container(size, 10);
   
-  auto item = std::make_shared<TestEntity>(10.0f, 20.0f);
+  auto item = std::make_shared<TestEntity>(20.0f, 20.0f);
   container.Add(item);
   
-  ASSERT_NO_THROW(container.Update(item));
+  // Verify item exists at original position
+  auto results_old = container.Get(WorldPos(20.0f, 20.0f), 2.0f);
+  ASSERT_GE(results_old.size(), 1);
+  
+  // Change position to different grid chunk
+  item->SetPosition(WorldPos(80.0f, 80.0f));
+  
+  // Call Update to refresh spatial index
+  container.Update(item);
+  
+  // Item should be found at new position
+  auto results_new = container.Get(WorldPos(80.0f, 80.0f), 2.0f);
+  ASSERT_GE(results_new.size(), 1);
+  
+  // Item should NOT be found at old position
+  auto results_old_check = container.Get(WorldPos(20.0f, 20.0f), 2.0f);
+  ASSERT_EQ(results_old_check.size(), 0);
 }
 
 TEST(PositionalContainer, AddItemsWithSamePosition) {
