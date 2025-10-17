@@ -46,6 +46,9 @@ public:
 
   vec(std::array<T, N> array) : m_Array{array} {}
 
+  template<typename OtherTag>
+  vec(vec<T, N, OtherTag>&& other) : m_Array{std::move(other.m_Array)} {}
+
   //
   // Access to elements & data
   //
@@ -276,9 +279,15 @@ public:
   }
 
   template <typename TargetTag>
-  vec<T,N,TargetTag> ChangeTag()
+  vec<T,N,TargetTag> ChangeTag() const &
   {
     return vec<T,N,TargetTag>(m_Array);
+  }
+
+  template <typename TargetTag>
+  vec<T,N,TargetTag> ChangeTag() &&
+  {
+    return vec<T,N,TargetTag>(std::move(*this));
   }
 
   // Structured binding support for N == 2
