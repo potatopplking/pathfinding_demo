@@ -118,17 +118,24 @@ public:
     vector_wptr output_vec{};
 
     Get(output_vec, center, radius);
+    
+    return output_vec;
   }
 
   void Get(std::vector<std::weak_ptr<T>>& output_vec, const WorldPos& center, float radius)
   {
     output_vec.clear();
-    const WorldPos A = center + radius; 
-    const WorldPos B = center - radius; 
-    if (!CheckBounds(A) || !CheckBounds(B))
+    const WorldPos corner_1 = center + radius; 
+    const WorldPos corner_2 = center - radius; 
+
+    if (!CheckBounds(corner_1) || !CheckBounds(corner_2))
     {
       return;
     }
+
+    const auto A = GetCoords(corner_1);
+    const auto B = GetCoords(corner_2);
+
     auto [x_min_f, x_max_f] = std::minmax(A.x(), B.x());
     auto [y_min_f, y_max_f] = std::minmax(A.y(), B.y());
 
@@ -138,9 +145,9 @@ public:
     size_t y_max = static_cast<size_t>(std::ceil(y_max_f));
 
     // TODO this goes through more positions than we need
-    for (size_t x = x_min; x < x_max; x++)
+    for (size_t x = x_min; x <= x_max; x++)
     {
-      for (size_t y = y_min; y < y_max; y++)
+      for (size_t y = y_min; y <= y_max; y++)
       {
         std::ranges::copy(m_Grid[x][y], std::back_inserter(output_vec));
       }

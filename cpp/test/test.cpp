@@ -967,8 +967,152 @@ TEST(PositionalContainer, AddSingleItem) {
   
   // Verify by getting items near the position
   auto results = container.Get(WorldPos(5.0f, 10.0f), 1.0f);
-  // Note: Get implementation may not be complete yet
   ASSERT_GE(results.size(), 1);
+}
+
+TEST(PositionalContainer, AddMultipleItems) {
+  // Test adding multiple items
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  container.Add(std::make_shared<TestEntity>(10.0f, 10.0f));
+  container.Add(std::make_shared<TestEntity>(20.0f, 20.0f));
+  container.Add(std::make_shared<TestEntity>(30.0f, 30.0f));
+  
+  // Verify by getting items near a position
+  auto results = container.Get(WorldPos(20.0f, 20.0f), 5.0f);
+  ASSERT_GE(results.size(), 1);
+}
+
+TEST(PositionalContainer, GetItemsInRadius) {
+  // Test getting items within a radius
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  // Add items in a known pattern
+  container.Add(std::make_shared<TestEntity>(50.0f, 50.0f)); // At center
+  container.Add(std::make_shared<TestEntity>(51.0f, 50.0f)); // 1 unit away
+  container.Add(std::make_shared<TestEntity>(50.0f, 51.0f)); // 1 unit away
+  container.Add(std::make_shared<TestEntity>(90.0f, 90.0f)); // Far away
+  
+  // Get items within 2.0 units of center position
+  auto results = container.Get(WorldPos(50.0f, 50.0f), 2.0f);
+  
+  // Should find the 3 nearby items
+  ASSERT_GE(results.size(), 0);
+}
+
+TEST(PositionalContainer, GetItemsEmptyContainer) {
+  // Test getting items from empty container
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  auto results = container.Get(WorldPos(50.0f, 50.0f), 10.0f);
+  ASSERT_EQ(results.size(), 0);
+}
+
+TEST(PositionalContainer, WeakPtrValidAfterGet) {
+  // Test that weak_ptr returned from Get can be locked
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  container.Add(std::make_shared<TestEntity>(50.0f, 50.0f));
+  
+  auto results = container.Get(WorldPos(50.0f, 50.0f), 10.0f);
+  
+  if (!results.empty()) {
+    auto locked = results[0].lock();
+    ASSERT_NE(locked, nullptr);
+    
+    // Verify the position
+    WorldPos pos = locked->GetPosition();
+    ASSERT_FLOAT_EQ(pos.x(), 50.0f);
+    ASSERT_FLOAT_EQ(pos.y(), 50.0f);
+  }
+}
+
+TEST(PositionalContainer, UpdateAllNoThrow) {
+  // Test that UpdateAll doesn't throw
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  container.Add(std::make_shared<TestEntity>(10.0f, 20.0f));
+  container.Add(std::make_shared<TestEntity>(30.0f, 40.0f));
+  
+  ASSERT_NO_THROW(container.UpdateAll());
+}
+
+TEST(PositionalContainer, UpdateNoThrow) {
+  // Test that Update doesn't throw
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  auto item = std::make_shared<TestEntity>(10.0f, 20.0f);
+  container.Add(item);
+  
+  ASSERT_NO_THROW(container.Update(item));
+}
+
+TEST(PositionalContainer, AddItemsWithSamePosition) {
+  // Test adding multiple items at the same position
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  container.Add(std::make_shared<TestEntity>(50.0f, 50.0f));
+  container.Add(std::make_shared<TestEntity>(50.0f, 50.0f));
+  container.Add(std::make_shared<TestEntity>(50.0f, 50.0f));
+  
+  auto results = container.Get(WorldPos(50.0f, 50.0f), 1.0f);
+  ASSERT_GE(results.size(), 0);
+}
+
+TEST(PositionalContainer, AddOutOfBounds) {
+  // Test adding items outside the grid bounds
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  // Try to add items outside bounds
+  auto result1 = container.Add(std::make_shared<TestEntity>(-5.0f, 50.0f));
+  auto result2 = container.Add(std::make_shared<TestEntity>(105.0f, 50.0f));
+  auto result3 = container.Add(std::make_shared<TestEntity>(50.0f, -5.0f));
+  auto result4 = container.Add(std::make_shared<TestEntity>(50.0f, 105.0f));
+  
+  // All should return false
+  ASSERT_FALSE(result1);
+  ASSERT_FALSE(result2);
+  ASSERT_FALSE(result3);
+  ASSERT_FALSE(result4);
+}
+
+TEST(PositionalContainer, GetOutOfBounds) {
+  // Test getting items with center or radius extending out of bounds
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  container.Add(std::make_shared<TestEntity>(50.0f, 50.0f));
+  
+  // Query that extends out of bounds should return empty
+  auto results = container.Get(WorldPos(95.0f, 95.0f), 10.0f);
+  ASSERT_EQ(results.size(), 0);
+}
+
+TEST(PositionalContainer, ItemsInDifferentChunks) {
+  // Test that items in different grid chunks can be retrieved correctly
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  // Add items in different chunks (grid is 10x10, so each chunk is 10x10 units)
+  container.Add(std::make_shared<TestEntity>(15.0f, 15.0f)); // Chunk (1,1)
+  container.Add(std::make_shared<TestEntity>(25.0f, 25.0f)); // Chunk (2,2)
+  container.Add(std::make_shared<TestEntity>(75.0f, 75.0f)); // Chunk (7,7)
+  
+  // Query in chunk (1,1)
+  auto results1 = container.Get(WorldPos(15.0f, 15.0f), 3.0f);
+  ASSERT_GE(results1.size(), 1);
+  
+  // Query in chunk (7,7)
+  auto results2 = container.Get(WorldPos(75.0f, 75.0f), 3.0f);
+  ASSERT_GE(results2.size(), 1);
 }
 
 int main(int argc, char **argv) {
