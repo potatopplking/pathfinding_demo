@@ -122,6 +122,16 @@ public:
     return output_vec;
   }
 
+  void Get(std::vector<std::weak_ptr<T>>& output_vec, const WorldPos& corner, const WorldSize& size)
+  {
+    const WorldSize half_size = size / 2.0f;
+    const WorldPos center =  corner + half_size.ChangeTag<WorldPos>();
+    float radius = half_size.x();
+    Get(output_vec, center, radius);
+  }
+
+  // TODO add those Get methods to the interface
+
   void Get(std::vector<std::weak_ptr<T>>& output_vec, const WorldPos& center, float radius)
   {
     output_vec.clear();
