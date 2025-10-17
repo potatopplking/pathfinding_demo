@@ -107,6 +107,7 @@ public:
     m_Items.push_back(item);
     auto coords = GetCoords(world_pos);
     m_Grid[coords.x()][coords.y()].push_back(item);
+    m_ReverseGridLookup[item] = coords;
     // TODO should we call Update instead?
     //Update(item);
     return true;
@@ -158,16 +159,29 @@ public:
     for (auto ptr : m_Items)
     {
       // TODO is this efficient? Maybe use const ref?
+
+
       Update(ptr);
     }
   }
   void Update(std::shared_ptr<T> item) override
   {
-    auto coords = GetCoords(item->GetPosition());
+    coord_type current_coords = GetCoords(item->GetPosition());
+    coord_type last_known_coords = m_ReverseGridLookup[item]; 
+    if (current_coords == last_known_coords)
+    {
+      return;
+    }
+    vector_wptr& vec = m_Grid[last_known_coords.x()][last_known_coords.y()];
     // remove the old weak ptr from the map
-    
+    vec.erase(std::remove_if(vec.begin(), vec.end(),
+                   [&](const std::weak_ptr<T>& w)
+                   {
+                       return !w.owner_before(item) && !item.owner_before(w);
+                   }),
+    vec.end());
     // add new weak ptr to the map
-    m_Grid[coords.x()][coords.y()].push_back(item);
+    m_Grid[current_coords.x()][current_coords.y()].push_back(item);
   }
 
 private:
@@ -196,6 +210,16 @@ private:
   WorldSize m_GridSize;
   WorldSize m_GridStep;
   size_t m_ChunksPerAxis;
+  // TODO it would be better to have vector<T> - contiguous memory, more cache-friendly?
   std::vector<std::shared_ptr<T>> m_Items;
   grid_type m_Grid;
+
+  // normal  lookup: WorldPos -> coord_type -> vector_wptr -> std::shared_ptr<T>
+  // reverse lookup: std::shared_ptr<T> -> vector_wptr -> coord_type
+  // we need the reverse lookup because T.GetPosition() may change and we need to delete
+  // the old weak_ptr from vector_wptr (without iterating through all of them).
+  // Also it might be useful to have T -> location lookup
+  // Note: hash of std::shared_ptr<T> may give us trouble if we free the memory and new one points
+  // to the same location, maybe it would be better to hash the object itself?
+  std::unordered_map<std::shared_ptr<T>, coord_type> m_ReverseGridLookup;
 };
