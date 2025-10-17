@@ -57,7 +57,6 @@ public:
     std::vector<std::weak_ptr<T>> matched_items;
     for (const auto& item : m_Items)
     {
-      const auto& A = item->GetPosition();
       if (center.DistanceTo(item->GetPosition()) < radius)
       {
         matched_items.push_back(item);
@@ -68,7 +67,7 @@ public:
   
   // no update needed here, as we have no smart lookup scheme
   void UpdateAll() override {}
-  void Update(std::shared_ptr<T> item) override {}
+  void Update(std::shared_ptr<T>) override {}
 
 private:
   std::vector<std::shared_ptr<T>> m_Items;
