@@ -231,5 +231,6 @@ private:
   // Also it might be useful to have T -> location lookup
   // Note: hash of std::shared_ptr<T> may give us trouble if we free the memory and new one points
   // to the same location, maybe it would be better to hash the object itself?
+  // TODO how about using counting bloom filter for this?
   std::unordered_map<std::shared_ptr<T>, coord_type> m_ReverseGridLookup;
 };
