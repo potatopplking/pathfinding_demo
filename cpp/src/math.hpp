@@ -37,6 +37,11 @@ static inline bool equalEpsilon(const T &a, const T &b) {
 struct Any {};
 
 template <typename T, size_t N, typename Tag = Any> class vec {
+
+  // Friend declaration for move constructor from different tag types
+  template <typename U, size_t M, typename OtherTag>
+  friend class vec;
+
 public:
   vec() : m_Array{} {}
 
@@ -139,6 +144,13 @@ public:
   friend vec operator/(const vec &a, const T &scalar) {
     vec<T, N, Tag> c;
     std::ranges::transform(a.m_Array, std::views::repeat(scalar),
+                           c.m_Array.begin(), std::divides{});
+    return c;
+  }
+
+  friend vec operator/(const vec &a, const vec& b) {
+    vec<T, N, Tag> c;
+    std::ranges::transform(a.m_Array, b.m_Array,
                            c.m_Array.begin(), std::divides{});
     return c;
   }

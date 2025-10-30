@@ -138,11 +138,6 @@ public:
     const WorldPos corner_1 = center + radius; 
     const WorldPos corner_2 = center - radius; 
 
-    if (!CheckBounds(corner_1) || !CheckBounds(corner_2))
-    {
-      return;
-    }
-
     const auto A = GetCoords(corner_1);
     const auto B = GetCoords(corner_2);
 
@@ -154,12 +149,30 @@ public:
     size_t y_min = static_cast<size_t>(std::floor(y_min_f));
     size_t y_max = static_cast<size_t>(std::ceil(y_max_f));
 
-    // TODO this goes through more positions than we need
     for (size_t x = x_min; x <= x_max; x++)
     {
       for (size_t y = y_min; y <= y_max; y++)
       {
+        if (!CheckBounds(x, y))
+        {
+          continue;
+        }
+#if 0
+        // TODO this is approx 2x faster, but inserts items outside of radius;
+        //      We can use this is a Get(rectangle) function
         std::ranges::copy(m_Grid[x][y], std::back_inserter(output_vec));
+#else
+        for (auto item_wptr : m_Grid[x][y])
+        {
+          if (auto shared = item_wptr.lock())
+          {
+            if (center.DistanceTo(shared->GetPosition()) < radius)
+            {
+              output_vec.push_back(item_wptr);
+            }
+          }
+        }
+#endif
       }
     }
   }
@@ -202,14 +215,21 @@ private:
 
   coord_type GetCoords(const WorldPos &wp)
   {
-    auto coord_float = wp / m_ChunksPerAxis;
+    auto coord_float = wp / m_GridStep.ChangeTag<WorldPos>();
     return coord_type{
       static_cast<size_t>(coord_float.x()),
       static_cast<size_t>(coord_float.y())
     };
   }
 
-  bool CheckBounds(const WorldPos& pos)
+  bool CheckBounds(size_t x, size_t y) const
+  {
+    bool x_in_bounds = x < m_Grid.size();
+    bool y_in_bounds = y < m_Grid.size();
+    return x_in_bounds && y_in_bounds;
+  }
+
+  bool CheckBounds(const WorldPos& pos) const
   {
     auto [x,y] = pos;
     bool x_in_bounds = 0.0f < x && x < m_GridSize.x(); 
