@@ -21,18 +21,17 @@ void GameLoop::Draw() {
           TilePos{static_cast<int32_t>(row), static_cast<int32_t>(col)}));
       const auto &size = camera.WorldToWindowSize(map.GetTileSize());
       // LOG_DEBUG("Drawing rect (", row, ", ", col, ")");
-      m_Window->DrawFilledRect(position, size, tiles[row][col]->R, tiles[row][col]->G,
-                         tiles[row][col]->B, tiles[row][col]->A);
+      m_Window->DrawFilledRect(position, size, tiles[row][col]->R,
+                               tiles[row][col]->G, tiles[row][col]->B,
+                               tiles[row][col]->A);
     }
   }
 
   // draw the path, if it exists
 
-  for (const auto& entity : m_Game->GetEntities())
-  {
+  for (const auto &entity : m_Game->GetEntities()) {
     WorldPos start_pos = entity->GetPosition();
-    for (const auto &next_pos : entity->GetPath())
-    {
+    for (const auto &next_pos : entity->GetPath()) {
       const auto &camera = m_Game->GetCamera();
       m_Window->DrawLine(camera.WorldToWindow(start_pos),
                          camera.WorldToWindow(next_pos));
@@ -44,29 +43,24 @@ void GameLoop::Draw() {
   for (auto &entity : m_Game->GetEntities()) {
     const auto &camera = m_Game->GetCamera();
     auto entity_pos = camera.WorldToWindow(entity->GetPosition());
-    m_Window->DrawSprite(entity_pos,
-                         entity->GetSprite(),
-                         camera.GetZoom());
-    if (entity->IsCollisionBoxVisible())
-    {
-      float collision_radius = camera.WorldToWindowSize(entity->GetCollisionRadius());
+    m_Window->DrawSprite(entity_pos, entity->GetSprite(), camera.GetZoom());
+    if (entity->IsCollisionBoxVisible()) {
+      float collision_radius =
+          camera.WorldToWindowSize(entity->GetCollisionRadius());
       m_Window->DrawCircle(entity_pos, collision_radius, 255, 0, 0);
     }
-    if (entity->IsSelected())
-    {
-      float collision_radius = camera.WorldToWindowSize(entity->GetCollisionRadius());
+    if (entity->IsSelected()) {
+      float collision_radius =
+          camera.WorldToWindowSize(entity->GetCollisionRadius());
       m_Window->DrawCircle(entity_pos, collision_radius, 0, 255, 0);
     }
   }
 
   // draw the selection box, if present
-  if (m_Game->IsSelectionBoxActive())
-  {
-    const auto& [corner_pos, size] = m_Game->GetSelectionBoxPosSize();
+  if (m_Game->IsSelectionBoxActive()) {
+    const auto &[corner_pos, size] = m_Game->GetSelectionBoxPosSize();
     m_Window->DrawRect(corner_pos, size, 200, 20, 20);
   }
-
-
 }
 
 // TODO rethink coupling and dependencies in the game loop class

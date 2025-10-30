@@ -5,17 +5,16 @@
 #include <queue>
 #include <vector>
 
+#include "camera.hpp"
 #include "entities.hpp"
 #include "log.hpp"
 #include "map.hpp"
-#include "user_input.hpp"
 #include "pathfinder/base.hpp"
-#include "camera.hpp"
+#include "user_input.hpp"
 
 using Collision = std::pair<std::weak_ptr<Entity>, std::weak_ptr<Entity>>;
 
-struct SelectionBox
-{
+struct SelectionBox {
   WindowPos start, end;
   WindowSize size;
   bool active;
@@ -31,9 +30,9 @@ public:
   PathFindingDemo &operator=(const PathFindingDemo &) = delete;
   PathFindingDemo &operator=(PathFindingDemo &&) = delete;
 
-  std::vector<std::shared_ptr<Entity>>& GetEntities() { return m_Entities; }
-  const Map& GetMap() const { return m_Map; }
-  const Camera& GetCamera() const { return m_Camera; }
+  std::vector<std::shared_ptr<Entity>> &GetEntities() { return m_Entities; }
+  const Map &GetMap() const { return m_Map; }
+  const Camera &GetCamera() const { return m_Camera; }
   bool IsExitRequested() const { return m_ExitRequested; }
 
   void AddEntity(std::shared_ptr<Entity> e);
@@ -46,10 +45,12 @@ public:
   void DeselectEntities();
   bool IsSelectionBoxActive() const { return m_SelectionBox.active; }
   std::pair<WindowPos, WindowSize> GetSelectionBoxPosSize();
-  std::vector<std::weak_ptr<Entity>> GetSelectedEntities() { return m_SelectedEntities; }
+  std::vector<std::weak_ptr<Entity>> GetSelectedEntities() {
+    return m_SelectedEntities;
+  }
 
 private:
-  const std::vector<Collision>& GetEntityCollisions();
+  const std::vector<Collision> &GetEntityCollisions();
 
   bool m_ExitRequested = false;
   Map m_Map;

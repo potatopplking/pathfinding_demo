@@ -30,7 +30,8 @@ void Entity::ZeroActualVelocityInDirection(WorldPos direction) {
 
   // q1 * e1 + q2 * e2 = v, from this follows:
   auto &v = GetActualVelocity();
-  float q2 = (v.y() * e1.x() - v.x() * e1.y()) / (e2.y() * e1.x() - e2.x() * e1.y());
+  float q2 =
+      (v.y() * e1.x() - v.x() * e1.y()) / (e2.y() * e1.x() - e2.x() * e1.y());
   float q1 = (v.x() - q2 * e2.x()) / e1.x();
 
   // We then zero-out the q1, but only if it's positive - meaning
@@ -46,9 +47,8 @@ void Entity::Update(float time_delta) {
   m_Position += m_ActualVelocity * time_delta;
 }
 
-std::optional<WorldPos> Entity::GetMoveTarget()
-{
-  auto& path = GetPath();
+std::optional<WorldPos> Entity::GetMoveTarget() {
+  auto &path = GetPath();
   if (path.empty()) {
     return {};
   }
@@ -61,27 +61,24 @@ std::optional<WorldPos> Entity::GetMoveTarget()
     return next_pos;
   }
   // target reached, pop it
-  //m_MoveQueue.pop();
+  // m_MoveQueue.pop();
   path.erase(path.begin());
   // return nothing - if there's next point in the queue,
   // we'll get it in the next iteration
   return {};
 }
 
-bool Entity::CollidesWith(const Entity& other) const
-{
-  const auto& A = *this;
-  const auto& B = other;
+bool Entity::CollidesWith(const Entity &other) const {
+  const auto &A = *this;
+  const auto &B = other;
 
   auto position_A = A.GetPosition();
   auto position_B = B.GetPosition();
   auto distance_sq = position_A.DistanceSquared(position_B);
   auto collision_distance_sq =
-      A.GetCollisionRadiusSquared() +
-      B.GetCollisionRadiusSquared() +
+      A.GetCollisionRadiusSquared() + B.GetCollisionRadiusSquared() +
       2 * A.GetCollisionRadius() * B.GetCollisionRadius();
-  if (distance_sq < collision_distance_sq)
-  {
+  if (distance_sq < collision_distance_sq) {
     return true;
   }
   return false;

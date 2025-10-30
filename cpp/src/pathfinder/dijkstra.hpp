@@ -10,12 +10,12 @@
 
 namespace pathfinder {
 
-class Dijkstra: public PathFinderBase {
+class Dijkstra : public PathFinderBase {
 
 public:
-  Dijkstra(const Map* m): PathFinderBase(m) {}
+  Dijkstra(const Map *m) : PathFinderBase(m) {}
   Path CalculatePath(WorldPos start, WorldPos end) override;
-  const std::string_view& GetName() const override { return m_Name; }
+  const std::string_view &GetName() const override { return m_Name; }
 
 private:
   const std::string_view m_Name = "Dijkstra's Algorithm";
@@ -23,4 +23,4 @@ private:
   std::unordered_map<TilePos, TilePos, TilePosHash> m_CameFrom;
 };
 
-} // pathfinder namespace
+} // namespace pathfinder

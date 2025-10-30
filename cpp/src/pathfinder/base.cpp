@@ -1,5 +1,5 @@
-#include <memory>
 #include <cassert>
+#include <memory>
 #include <queue>
 
 #include "pathfinder/base.hpp"
@@ -9,14 +9,15 @@
 
 namespace pathfinder {
 
-PathFinderBase::PathFinderBase(const Map* map) : m_Map(map) {}
+PathFinderBase::PathFinderBase(const Map *map) : m_Map(map) {}
 
 // LinearPathFinder also lives here, since it is too small to get it's
 // own implementation file
-Path LinearPathFinder::CalculatePath(WorldPos, WorldPos end) // first argument (start pos) not used
+Path LinearPathFinder::CalculatePath(
+    WorldPos, WorldPos end) // first argument (start pos) not used
 {
   auto path = Path{end};
   return path;
 }
 
-} // pathfinder namespace
+} // namespace pathfinder

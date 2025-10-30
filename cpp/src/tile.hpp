@@ -1,9 +1,9 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <map>
 #include <string_view>
-#include <array>
 #include <unordered_map>
 
 struct Tile {

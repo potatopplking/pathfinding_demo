@@ -1,11 +1,11 @@
 #pragma once
 
-#include <vector>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
-#include "math.hpp"
 #include "map.hpp"
+#include "math.hpp"
 
 namespace pathfinder {
 
@@ -21,32 +21,30 @@ enum class PathFinderType {
 
 class PathFinderBase {
 public:
-  PathFinderBase(const Map* m);
+  PathFinderBase(const Map *m);
   ~PathFinderBase() = default;
 
-  PathFinderBase(const PathFinderBase&) = delete;
-  PathFinderBase(PathFinderBase&&) = delete;
-  PathFinderBase& operator=(const PathFinderBase&) = delete;
-  PathFinderBase& operator=(PathFinderBase&&) = delete;
+  PathFinderBase(const PathFinderBase &) = delete;
+  PathFinderBase(PathFinderBase &&) = delete;
+  PathFinderBase &operator=(const PathFinderBase &) = delete;
+  PathFinderBase &operator=(PathFinderBase &&) = delete;
 
-  virtual const std::string_view& GetName() const = 0; 
+  virtual const std::string_view &GetName() const = 0;
   virtual Path CalculatePath(WorldPos start, WorldPos end) = 0;
 
 protected:
-  const Map* m_Map;
+  const Map *m_Map;
 };
-
 
 class LinearPathFinder : public PathFinderBase {
 
 public:
-  LinearPathFinder(const Map* m): PathFinderBase(m) {}
+  LinearPathFinder(const Map *m) : PathFinderBase(m) {}
   Path CalculatePath(WorldPos start, WorldPos end) override;
-  const std::string_view& GetName() const override { return m_Name; }
+  const std::string_view &GetName() const override { return m_Name; }
 
 private:
   const std::string_view m_Name = "Linear Path";
 };
 
-} // pathfinder namespace
-  
+} // namespace pathfinder
