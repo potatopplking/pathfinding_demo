@@ -14,10 +14,10 @@ public:
   Map(int rows, int cols);
   Map() : Map(0, 0) {}
 
-  Map(const Map&) = delete;
-  Map(Map&&) = delete;
-  Map& operator=(const Map&) = delete;
-  Map& operator=(Map&&) = delete;
+  Map(const Map &) = delete;
+  Map(Map &&) = delete;
+  Map &operator=(const Map &) = delete;
+  Map &operator=(Map &&) = delete;
 
   const TileGrid &GetMapTiles() const { return m_Tiles; }
 
@@ -25,7 +25,7 @@ public:
   WorldPos TileToWorld(TilePos p) const;
   WorldPos TileEdgeToWorld(TilePos p) const;
   TilePos WorldToTile(WorldPos p) const;
-  
+
   WorldSize GetTileSize() const;
   const Tile *GetTileAt(TilePos p) const;
   const Tile *GetTileAt(WorldPos p) const;
@@ -35,7 +35,8 @@ public:
   // methods for drawing on the map
   void PaintCircle(TilePos center, unsigned radius, TileType tile_type);
   void PaintLine(TilePos start, TilePos stop, double width, TileType tile_type);
-  void PaintRectangle(TilePos first_corner, TilePos second_corner, TileType tile_type);
+  void PaintRectangle(TilePos first_corner, TilePos second_corner,
+                      TileType tile_type);
 
   std::vector<TilePos> GetNeighbors(TilePos center) const;
   float GetCost(TilePos pos) const { return GetTileAt(pos)->cost; }

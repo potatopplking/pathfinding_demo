@@ -11,21 +11,22 @@ Map::Map(int rows, int cols) : m_Cols(cols), m_Rows(rows) {
   for (size_t row = 0; row < m_Rows; row++) {
     m_Tiles.push_back(std::vector<const Tile *>{});
     for (size_t col = 0; col < m_Cols; col++) {
-        m_Tiles[row].push_back(&tile_types.at(TileType::GRASS));
+      m_Tiles[row].push_back(&tile_types.at(TileType::GRASS));
     }
   }
 }
 
 WorldPos Map::TileToWorld(TilePos p) const {
-  return WorldPos{(p.x() + 0.5f) * TILE_SIZE, (p.y() + 0.5f) * TILE_SIZE}; 
+  return WorldPos{(p.x() + 0.5f) * TILE_SIZE, (p.y() + 0.5f) * TILE_SIZE};
 }
 
 WorldPos Map::TileEdgeToWorld(TilePos p) const {
-  return WorldPos{p.x() * TILE_SIZE, p.y() * TILE_SIZE}; 
+  return WorldPos{p.x() * TILE_SIZE, p.y() * TILE_SIZE};
 }
 
 TilePos Map::WorldToTile(WorldPos p) const {
-  return TilePos{static_cast<int32_t>(p.x() / TILE_SIZE), static_cast<int32_t>(p.y() / TILE_SIZE)};
+  return TilePos{static_cast<int32_t>(p.x() / TILE_SIZE),
+                 static_cast<int32_t>(p.y() / TILE_SIZE)};
 }
 
 WorldSize Map::GetTileSize() const { return WorldSize{TILE_SIZE, TILE_SIZE}; }
@@ -51,40 +52,38 @@ bool Map::IsTilePosValid(TilePos p) const {
   return row < m_Tiles.size() && col < m_Tiles[0].size();
 }
 
-
-std::vector<TilePos> Map::GetNeighbors(TilePos center) const
-{
+std::vector<TilePos> Map::GetNeighbors(TilePos center) const {
   std::vector<TilePos> neighbours;
   neighbours.reserve(4);
 
   std::array<TilePos, 4> candidates = {
-    center + TilePos{ 1,  0},
-    center + TilePos{-1,  0},
-    center + TilePos{ 0,  1},
-    center + TilePos{ 0, -1},
+      center + TilePos{1, 0},
+      center + TilePos{-1, 0},
+      center + TilePos{0, 1},
+      center + TilePos{0, -1},
   };
 
-  for (const auto& c : candidates) {
+  for (const auto &c : candidates) {
     if (IsTilePosValid(c))
-        neighbours.push_back(c);
+      neighbours.push_back(c);
   }
   return neighbours;
 }
 
-
-void Map::PaintCircle(TilePos center, unsigned radius, TileType tile_type)
-{
+void Map::PaintCircle(TilePos center, unsigned radius, TileType tile_type) {
   // get rectangle that wraps the circle
-  TilePos corner1 = TilePos{center.x() - static_cast<int32_t>(radius), center.y() - static_cast<int32_t>(radius)};
-  TilePos corner2 = TilePos{center.x() + static_cast<int32_t>(radius), center.y() + static_cast<int32_t>(radius)};
+  TilePos corner1 = TilePos{center.x() - static_cast<int32_t>(radius),
+                            center.y() - static_cast<int32_t>(radius)};
+  TilePos corner2 = TilePos{center.x() + static_cast<int32_t>(radius),
+                            center.y() + static_cast<int32_t>(radius)};
   // iterate through all valid points, setting the type
-  const unsigned radius_squared = radius * radius; 
+  const unsigned radius_squared = radius * radius;
   for (int x = corner1.x(); x < corner2.x(); x++) {
     for (int y = corner1.y(); y < corner2.y(); y++) {
-      TilePos current_tile = {x, y}; 
-      unsigned distance_squared = static_cast<unsigned>(center.DistanceTo(current_tile) * center.DistanceTo(current_tile));
-      if (IsTilePosValid(current_tile) && distance_squared < radius_squared)
-      {
+      TilePos current_tile = {x, y};
+      unsigned distance_squared = static_cast<unsigned>(
+          center.DistanceTo(current_tile) * center.DistanceTo(current_tile));
+      if (IsTilePosValid(current_tile) && distance_squared < radius_squared) {
         // y is row, x is col
         m_Tiles[y][x] = &tile_types.at(tile_type);
       }
@@ -92,19 +91,24 @@ void Map::PaintCircle(TilePos center, unsigned radius, TileType tile_type)
   }
 }
 
-void Map::PaintLine(TilePos start_tile, TilePos stop_tile, double width, TileType tile_type)
-{
-  const vec<double, 2> start{static_cast<double>(start_tile.x()), static_cast<double>(start_tile.y())};
-  const vec<double, 2> stop{static_cast<double>(stop_tile.x()), static_cast<double>(stop_tile.y())};
+void Map::PaintLine(TilePos start_tile, TilePos stop_tile, double width,
+                    TileType tile_type) {
+  const vec<double, 2> start{static_cast<double>(start_tile.x()),
+                             static_cast<double>(start_tile.y())};
+  const vec<double, 2> stop{static_cast<double>(stop_tile.x()),
+                            static_cast<double>(stop_tile.y())};
   const double line_length = start.DistanceTo(stop);
   const vec<double, 2> step = (stop - start) / line_length;
   const vec<double, 2> ortho = step.GetOrthogonal();
   LOG_DEBUG("step = ", step, " ortho = ", ortho);
 
+  // NOLINTNEXTLINE(clang-analyzer-security.FloatLoopCounter)
   for (double t = 0; t < line_length; t += 1.0) {
+    // NOLINTNEXTLINE(clang-analyzer-security.FloatLoopCounter)
     for (double ortho_t = 0; ortho_t < width; ortho_t += 0.1) {
       auto tile_pos = start + step * t + ortho * ortho_t;
-      TilePos tile_pos_int{static_cast<int32_t>(tile_pos.x()), static_cast<int32_t>(tile_pos.y())};
+      TilePos tile_pos_int{static_cast<int32_t>(tile_pos.x()),
+                           static_cast<int32_t>(tile_pos.y())};
       if (IsTilePosValid(tile_pos_int)) {
         size_t row = static_cast<size_t>(tile_pos.x());
         size_t col = static_cast<size_t>(tile_pos.y());
@@ -114,15 +118,14 @@ void Map::PaintLine(TilePos start_tile, TilePos stop_tile, double width, TileTyp
   }
 }
 
-
-void Map::PaintRectangle(TilePos first_corner, TilePos second_corner, TileType tile_type)
-{
+void Map::PaintRectangle(TilePos first_corner, TilePos second_corner,
+                         TileType tile_type) {
   std::initializer_list<int> xvals = {first_corner.x(), second_corner.x()};
   std::initializer_list<int> yvals = {first_corner.y(), second_corner.y()};
   for (int x = std::min(xvals); x < std::max(xvals); x++) {
     for (int y = std::min(yvals); y < std::max(yvals); y++) {
-      TilePos tile_pos{x,y};
-      LOG_DEBUG("tile_pos = ", tile_pos); 
+      TilePos tile_pos{x, y};
+      LOG_DEBUG("tile_pos = ", tile_pos);
       if (IsTilePosValid(tile_pos)) {
         size_t row = static_cast<size_t>(tile_pos.x());
         size_t col = static_cast<size_t>(tile_pos.y());

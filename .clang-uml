@@ -1,0 +1,26 @@
+# When configuring with cmake, use:
+# cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug
+compilation_database_dir: build
+
+# Path to system header needs to be specified,
+# you will probably need to modify this
+add_compile_flags:
+  - '-I/usr/lib/clang/21/include'
+
+output_directory: docs/diagrams
+diagrams:
+  class_diagram:
+    type: class
+    glob:
+      - cpp/src/**/*.cpp
+      - cpp/src/**/*.hpp
+  include_diagram:
+    type: include
+    glob:
+      - cpp/src/**/*.cpp
+    # Include also external system headers
+    #generate_system_headers: true
+    include:
+      # Include only files belonging to these paths
+      paths:
+        - cpp/src

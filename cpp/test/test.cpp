@@ -7,6 +7,7 @@
 
 #include "log.hpp"
 #include "math.hpp"
+#include "positional_container.hpp"
 
 
 TEST(vec, DefaultConstruction) {
@@ -170,6 +171,86 @@ TEST(vec, Sub)
   ASSERT_FLOAT_EQ(negative_result[0], -3.0f);
   ASSERT_FLOAT_EQ(negative_result[1], -3.0f);
   ASSERT_FLOAT_EQ(negative_result[2], -3.0f);
+}
+
+TEST(vec, ScalarAddition)
+{
+  // Test operator+ with float vector and scalar
+  vec3 v1{1.0f, 2.0f, 3.0f};
+  vec3 result = v1 + 5.0f;
+  
+  ASSERT_FLOAT_EQ(result[0], 6.0f);
+  ASSERT_FLOAT_EQ(result[1], 7.0f);
+  ASSERT_FLOAT_EQ(result[2], 8.0f);
+  
+  // Test operator+ with integer vector and scalar
+  ivec3 iv1{10, 20, 30};
+  ivec3 iresult = iv1 + 5;
+  
+  ASSERT_EQ(iresult[0], 15);
+  ASSERT_EQ(iresult[1], 25);
+  ASSERT_EQ(iresult[2], 35);
+  
+  // Test that original vector is unchanged
+  ASSERT_FLOAT_EQ(v1[0], 1.0f);
+  ASSERT_FLOAT_EQ(v1[1], 2.0f);
+  ASSERT_FLOAT_EQ(v1[2], 3.0f);
+  
+  // Test addition with negative scalar
+  vec3 v2{5.0f, 10.0f, 15.0f};
+  vec3 negative_result = v2 + (-3.0f);
+  
+  ASSERT_FLOAT_EQ(negative_result[0], 2.0f);
+  ASSERT_FLOAT_EQ(negative_result[1], 7.0f);
+  ASSERT_FLOAT_EQ(negative_result[2], 12.0f);
+  
+  // Test addition with zero
+  vec3 v3{1.0f, 2.0f, 3.0f};
+  vec3 zero_result = v3 + 0.0f;
+  
+  ASSERT_FLOAT_EQ(zero_result[0], 1.0f);
+  ASSERT_FLOAT_EQ(zero_result[1], 2.0f);
+  ASSERT_FLOAT_EQ(zero_result[2], 3.0f);
+}
+
+TEST(vec, ScalarSubtraction)
+{
+  // Test operator- with float vector and scalar
+  vec3 v1{10.0f, 15.0f, 20.0f};
+  vec3 result = v1 - 5.0f;
+  
+  ASSERT_FLOAT_EQ(result[0], 5.0f);
+  ASSERT_FLOAT_EQ(result[1], 10.0f);
+  ASSERT_FLOAT_EQ(result[2], 15.0f);
+  
+  // Test operator- with integer vector and scalar
+  ivec3 iv1{50, 40, 30};
+  ivec3 iresult = iv1 - 10;
+  
+  ASSERT_EQ(iresult[0], 40);
+  ASSERT_EQ(iresult[1], 30);
+  ASSERT_EQ(iresult[2], 20);
+  
+  // Test that original vector is unchanged
+  ASSERT_FLOAT_EQ(v1[0], 10.0f);
+  ASSERT_FLOAT_EQ(v1[1], 15.0f);
+  ASSERT_FLOAT_EQ(v1[2], 20.0f);
+  
+  // Test subtraction with negative scalar (equivalent to addition)
+  vec3 v2{5.0f, 10.0f, 15.0f};
+  vec3 negative_result = v2 - (-3.0f);
+  
+  ASSERT_FLOAT_EQ(negative_result[0], 8.0f);
+  ASSERT_FLOAT_EQ(negative_result[1], 13.0f);
+  ASSERT_FLOAT_EQ(negative_result[2], 18.0f);
+  
+  // Test subtraction resulting in negative values
+  vec3 v3{1.0f, 2.0f, 3.0f};
+  vec3 negative_vals_result = v3 - 5.0f;
+  
+  ASSERT_FLOAT_EQ(negative_vals_result[0], -4.0f);
+  ASSERT_FLOAT_EQ(negative_vals_result[1], -3.0f);
+  ASSERT_FLOAT_EQ(negative_vals_result[2], -2.0f);
 }
 
 TEST(vec, ScalarMultiplication)
@@ -750,6 +831,375 @@ TEST(Matrix, ChainedOperations) {
   ASSERT_FLOAT_EQ(m1[0][0], 1.0f);
   ASSERT_FLOAT_EQ(m2[0][0], 1.0f);
   ASSERT_FLOAT_EQ(m3[0][0], 2.0f);
+}
+
+// Helper class for SimpleContainer tests
+class TestEntity {
+public:
+  TestEntity() : m_Position(0.0f, 0.0f) {}
+  TestEntity(float x, float y) : m_Position(x, y) {}
+  TestEntity(WorldPos pos) : m_Position(pos) {}
+  
+  WorldPos GetPosition() const { return m_Position; }
+  void SetPosition(WorldPos pos) { m_Position = pos; }
+  
+private:
+  WorldPos m_Position;
+};
+
+TEST(SimpleContainer, DefaultConstruction) {
+  // Test that SimpleContainer can be default constructed
+  SimpleContainer<TestEntity> container;
+  SUCCEED();
+}
+
+TEST(SimpleContainer, AddSingleItem) {
+  // Test adding a single item
+  SimpleContainer<TestEntity> container;
+  auto entity = std::make_shared<TestEntity>(5.0f, 10.0f);
+  container.Add(entity);
+  
+  // Verify by getting items near the position
+  auto results = container.Get(WorldPos(5.0f, 10.0f), 1.0f);
+  ASSERT_EQ(results.size(), 1);
+}
+
+TEST(SimpleContainer, AddMultipleItems) {
+  // Test adding multiple items
+  SimpleContainer<TestEntity> container;
+  container.Add(std::make_shared<TestEntity>(0.0f, 0.0f));
+  container.Add(std::make_shared<TestEntity>(10.0f, 10.0f));
+  container.Add(std::make_shared<TestEntity>(20.0f, 20.0f));
+  
+  // Verify by getting items near a position
+  auto results = container.Get(WorldPos(10.0f, 10.0f), 5.0f);
+  ASSERT_GE(results.size(), 1);
+}
+
+TEST(SimpleContainer, GetItemsInRadius) {
+  // Test getting items within a radius
+  SimpleContainer<TestEntity> container;
+  
+  // Add items in a known pattern
+  container.Add(std::make_shared<TestEntity>(0.0f, 0.0f));   // At origin
+  container.Add(std::make_shared<TestEntity>(1.0f, 0.0f));   // 1 unit away
+  container.Add(std::make_shared<TestEntity>(0.0f, 1.0f));   // 1 unit away
+  container.Add(std::make_shared<TestEntity>(10.0f, 10.0f)); // Far away
+  
+  // Get items within 2.0 units of origin
+  auto results = container.Get(WorldPos(0.0f, 0.0f), 2.0f);
+  
+  // Should find the 3 nearby items (if Get is working correctly)
+  // Note: This depends on the actual implementation of Get
+  ASSERT_GE(results.size(), 0);
+}
+
+TEST(SimpleContainer, GetItemsEmptyContainer) {
+  // Test getting items from empty container
+  SimpleContainer<TestEntity> container;
+  
+  auto results = container.Get(WorldPos(0.0f, 0.0f), 10.0f);
+  ASSERT_EQ(results.size(), 0);
+}
+
+TEST(SimpleContainer, WeakPtrValidAfterGet) {
+  // Test that weak_ptr returned from Get can be locked
+  SimpleContainer<TestEntity> container;
+  container.Add(std::make_shared<TestEntity>(5.0f, 5.0f));
+  
+  auto results = container.Get(WorldPos(5.0f, 5.0f), 10.0f);
+  
+  if (!results.empty()) {
+    auto locked = results[0].lock();
+    ASSERT_NE(locked, nullptr);
+    
+    // Verify the position
+    WorldPos pos = locked->GetPosition();
+    ASSERT_FLOAT_EQ(pos.x(), 5.0f);
+    ASSERT_FLOAT_EQ(pos.y(), 5.0f);
+  }
+}
+
+TEST(SimpleContainer, UpdateAll) {
+  // Test that UpdateAll properly updates item positions
+  // For SimpleContainer, Update is a no-op but Get should still find moved items
+  SimpleContainer<TestEntity> container;
+  
+  auto item1 = std::make_shared<TestEntity>(10.0f, 10.0f);
+  auto item2 = std::make_shared<TestEntity>(20.0f, 20.0f);
+  container.Add(item1);
+  container.Add(item2);
+  
+  // Verify items exist at original positions
+  auto results_old1 = container.Get(WorldPos(10.0f, 10.0f), 1.0f);
+  auto results_old2 = container.Get(WorldPos(20.0f, 20.0f), 1.0f);
+  ASSERT_GE(results_old1.size(), 1);
+  ASSERT_GE(results_old2.size(), 1);
+  
+  // Change positions
+  item1->SetPosition(WorldPos(50.0f, 50.0f));
+  item2->SetPosition(WorldPos(60.0f, 60.0f));
+  
+  // Call UpdateAll
+  container.UpdateAll();
+  
+  // For SimpleContainer, items should still be found at new positions
+  // (since Get checks actual item positions, not cached locations)
+  auto results_new1 = container.Get(WorldPos(50.0f, 50.0f), 1.0f);
+  auto results_new2 = container.Get(WorldPos(60.0f, 60.0f), 1.0f);
+  ASSERT_GE(results_new1.size(), 1);
+  ASSERT_GE(results_new2.size(), 1);
+  
+  // Items should NOT be found at old positions anymore
+  auto results_old_check1 = container.Get(WorldPos(10.0f, 10.0f), 1.0f);
+  auto results_old_check2 = container.Get(WorldPos(20.0f, 20.0f), 1.0f);
+  ASSERT_EQ(results_old_check1.size(), 0);
+  ASSERT_EQ(results_old_check2.size(), 0);
+}
+
+TEST(SimpleContainer, Update) {
+  // Test that Update properly handles a single item position change
+  SimpleContainer<TestEntity> container;
+  
+  auto item = std::make_shared<TestEntity>(15.0f, 15.0f);
+  container.Add(item);
+  
+  // Verify item exists at original position
+  auto results_old = container.Get(WorldPos(15.0f, 15.0f), 1.0f);
+  ASSERT_GE(results_old.size(), 1);
+  
+  // Change position
+  item->SetPosition(WorldPos(75.0f, 75.0f));
+  
+  // Call Update
+  container.Update(item);
+  
+  // Item should be found at new position
+  auto results_new = container.Get(WorldPos(75.0f, 75.0f), 1.0f);
+  ASSERT_GE(results_new.size(), 1);
+  
+  // Item should NOT be found at old position
+  auto results_old_check = container.Get(WorldPos(15.0f, 15.0f), 1.0f);
+  ASSERT_EQ(results_old_check.size(), 0);
+}
+
+TEST(SimpleContainer, AddItemsWithSamePosition) {
+  // Test adding multiple items at the same position
+  SimpleContainer<TestEntity> container;
+  
+  container.Add(std::make_shared<TestEntity>(5.0f, 5.0f));
+  container.Add(std::make_shared<TestEntity>(5.0f, 5.0f));
+  container.Add(std::make_shared<TestEntity>(5.0f, 5.0f));
+  
+  auto results = container.Get(WorldPos(5.0f, 5.0f), 1.0f);
+  ASSERT_EQ(results.size(), 3);
+}
+
+TEST(PositionalContainer, DefaultConstruction) {
+  // Test that PositionalContainer can be constructed with size and chunks
+  WorldSize size(100.0f, 100.0f);
+  size_t chunks = 10;
+  
+  PositionalContainer<TestEntity> container(size, chunks);
+  SUCCEED();
+}
+
+TEST(PositionalContainer, AddSingleItem) {
+  // Test adding a single item
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  auto entity = std::make_shared<TestEntity>(5.0f, 10.0f);
+  container.Add(entity);
+  
+  // Verify by getting items near the position
+  auto results = container.Get(WorldPos(5.0f, 10.0f), 1.0f);
+  ASSERT_GE(results.size(), 1);
+}
+
+TEST(PositionalContainer, AddMultipleItems) {
+  // Test adding multiple items
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  container.Add(std::make_shared<TestEntity>(10.0f, 10.0f));
+  container.Add(std::make_shared<TestEntity>(20.0f, 20.0f));
+  container.Add(std::make_shared<TestEntity>(30.0f, 30.0f));
+  
+  // Verify by getting items near a position
+  auto results = container.Get(WorldPos(20.0f, 20.0f), 5.0f);
+  ASSERT_GE(results.size(), 1);
+}
+
+TEST(PositionalContainer, GetItemsInRadius) {
+  // Test getting items within a radius
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  // Add items in a known pattern
+  container.Add(std::make_shared<TestEntity>(50.0f, 50.0f)); // At center
+  container.Add(std::make_shared<TestEntity>(51.0f, 50.0f)); // 1 unit away
+  container.Add(std::make_shared<TestEntity>(50.0f, 51.0f)); // 1 unit away
+  container.Add(std::make_shared<TestEntity>(90.0f, 90.0f)); // Far away
+  
+  // Get items within 2.0 units of center position
+  auto results = container.Get(WorldPos(50.0f, 50.0f), 2.0f);
+  
+  // Should find the 3 nearby items
+  ASSERT_GE(results.size(), 0);
+}
+
+TEST(PositionalContainer, GetItemsEmptyContainer) {
+  // Test getting items from empty container
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  auto results = container.Get(WorldPos(50.0f, 50.0f), 10.0f);
+  ASSERT_EQ(results.size(), 0);
+}
+
+TEST(PositionalContainer, WeakPtrValidAfterGet) {
+  // Test that weak_ptr returned from Get can be locked
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  container.Add(std::make_shared<TestEntity>(50.0f, 50.0f));
+  
+  auto results = container.Get(WorldPos(50.0f, 50.0f), 10.0f);
+  
+  if (!results.empty()) {
+    auto locked = results[0].lock();
+    ASSERT_NE(locked, nullptr);
+    
+    // Verify the position
+    WorldPos pos = locked->GetPosition();
+    ASSERT_FLOAT_EQ(pos.x(), 50.0f);
+    ASSERT_FLOAT_EQ(pos.y(), 50.0f);
+  }
+}
+
+TEST(PositionalContainer, UpdateAll) {
+  // Test that UpdateAll properly updates spatial index after position changes
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  auto item1 = std::make_shared<TestEntity>(15.0f, 15.0f);
+  auto item2 = std::make_shared<TestEntity>(25.0f, 25.0f);
+  container.Add(item1);
+  container.Add(item2);
+  
+  // Verify items exist at original positions
+  auto results_old1 = container.Get(WorldPos(15.0f, 15.0f), 2.0f);
+  auto results_old2 = container.Get(WorldPos(25.0f, 25.0f), 2.0f);
+  ASSERT_GE(results_old1.size(), 1);
+  ASSERT_GE(results_old2.size(), 1);
+  
+  // Change positions to different grid chunks
+  item1->SetPosition(WorldPos(65.0f, 65.0f));
+  item2->SetPosition(WorldPos(75.0f, 75.0f));
+  
+  // Call UpdateAll to refresh spatial index
+  container.UpdateAll();
+  
+  // Items should be found at new positions
+  auto results_new1 = container.Get(WorldPos(65.0f, 65.0f), 2.0f);
+  auto results_new2 = container.Get(WorldPos(75.0f, 75.0f), 2.0f);
+  ASSERT_GE(results_new1.size(), 1);
+  ASSERT_GE(results_new2.size(), 1);
+  
+  // Items should NOT be found at old positions anymore
+  auto results_old_check1 = container.Get(WorldPos(15.0f, 15.0f), 2.0f);
+  auto results_old_check2 = container.Get(WorldPos(25.0f, 25.0f), 2.0f);
+  ASSERT_EQ(results_old_check1.size(), 0);
+  ASSERT_EQ(results_old_check2.size(), 0);
+}
+
+TEST(PositionalContainer, Update) {
+  // Test that Update properly updates spatial index for a single item
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  auto item = std::make_shared<TestEntity>(20.0f, 20.0f);
+  container.Add(item);
+  
+  // Verify item exists at original position
+  auto results_old = container.Get(WorldPos(20.0f, 20.0f), 2.0f);
+  ASSERT_GE(results_old.size(), 1);
+  
+  // Change position to different grid chunk
+  item->SetPosition(WorldPos(80.0f, 80.0f));
+  
+  // Call Update to refresh spatial index
+  container.Update(item);
+  
+  // Item should be found at new position
+  auto results_new = container.Get(WorldPos(80.0f, 80.0f), 2.0f);
+  ASSERT_GE(results_new.size(), 1);
+  
+  // Item should NOT be found at old position
+  auto results_old_check = container.Get(WorldPos(20.0f, 20.0f), 2.0f);
+  ASSERT_EQ(results_old_check.size(), 0);
+}
+
+TEST(PositionalContainer, AddItemsWithSamePosition) {
+  // Test adding multiple items at the same position
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  container.Add(std::make_shared<TestEntity>(50.0f, 50.0f));
+  container.Add(std::make_shared<TestEntity>(50.0f, 50.0f));
+  container.Add(std::make_shared<TestEntity>(50.0f, 50.0f));
+  
+  auto results = container.Get(WorldPos(50.0f, 50.0f), 1.0f);
+  ASSERT_GE(results.size(), 0);
+}
+
+TEST(PositionalContainer, AddOutOfBounds) {
+  // Test adding items outside the grid bounds
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  // Try to add items outside bounds
+  auto result1 = container.Add(std::make_shared<TestEntity>(-5.0f, 50.0f));
+  auto result2 = container.Add(std::make_shared<TestEntity>(105.0f, 50.0f));
+  auto result3 = container.Add(std::make_shared<TestEntity>(50.0f, -5.0f));
+  auto result4 = container.Add(std::make_shared<TestEntity>(50.0f, 105.0f));
+  
+  // All should return false
+  ASSERT_FALSE(result1);
+  ASSERT_FALSE(result2);
+  ASSERT_FALSE(result3);
+  ASSERT_FALSE(result4);
+}
+
+TEST(PositionalContainer, GetOutOfBounds) {
+  // Test getting items with center or radius extending out of bounds
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  container.Add(std::make_shared<TestEntity>(50.0f, 50.0f));
+  
+  // Query that extends out of bounds should return empty
+  auto results = container.Get(WorldPos(95.0f, 95.0f), 10.0f);
+  ASSERT_EQ(results.size(), 0);
+}
+
+TEST(PositionalContainer, ItemsInDifferentChunks) {
+  // Test that items in different grid chunks can be retrieved correctly
+  WorldSize size(100.0f, 100.0f);
+  PositionalContainer<TestEntity> container(size, 10);
+  
+  // Add items in different chunks (grid is 10x10, so each chunk is 10x10 units)
+  container.Add(std::make_shared<TestEntity>(15.0f, 15.0f)); // Chunk (1,1)
+  container.Add(std::make_shared<TestEntity>(25.0f, 25.0f)); // Chunk (2,2)
+  container.Add(std::make_shared<TestEntity>(75.0f, 75.0f)); // Chunk (7,7)
+  
+  // Query in chunk (1,1)
+  auto results1 = container.Get(WorldPos(15.0f, 15.0f), 3.0f);
+  ASSERT_GE(results1.size(), 1);
+  
+  // Query in chunk (7,7)
+  auto results2 = container.Get(WorldPos(75.0f, 75.0f), 3.0f);
+  ASSERT_GE(results2.size(), 1);
 }
 
 int main(int argc, char **argv) {

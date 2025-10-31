@@ -4,13 +4,13 @@
 #include <cstdint>
 #include <iostream>
 #include <memory>
-#include <string_view>
 #include <optional>
+#include <string_view>
 
 #include "log.hpp"
 #include "math.hpp"
-#include "sprite.hpp"
 #include "pathfinder/base.hpp"
+#include "sprite.hpp"
 
 class Entity {
 public:
@@ -58,12 +58,12 @@ public:
 
   void ZeroActualVelocityInDirection(WorldPos direction);
 
-  const pathfinder::Path& GetPath() const { return m_Path; }
-  pathfinder::Path& GetPath() { return m_Path; }
-  void SetPath(pathfinder::Path& path) { m_Path = path; }
+  const pathfinder::Path &GetPath() const { return m_Path; }
+  pathfinder::Path &GetPath() { return m_Path; }
+  void SetPath(pathfinder::Path &path) { m_Path = path; }
   std::optional<WorldPos> GetMoveTarget();
 
-  bool CollidesWith(const Entity& other) const;
+  bool CollidesWith(const Entity &other) const;
 
   bool IsCollisionBoxVisible() const { return m_CollisionBoxVisible; }
 

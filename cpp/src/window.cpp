@@ -79,19 +79,20 @@ Window::~Window() {
 void Window::DrawSprite(const WindowPos &position, Sprite &s, float scale) {
   WorldSize size = s.GetSize() * scale;
   WorldPos img_center = s.GetCenter() * scale;
-  SDL_FRect rect = {position.x() - img_center.x(), position.y() - img_center.y(),
-                    size.x(), size.y()};
+  SDL_FRect rect = {position.x() - img_center.x(),
+                    position.y() - img_center.y(), size.x(), size.y()};
   SDL_RenderTexture(m_Renderer.get(), s.GetTexture(), nullptr, &rect);
 }
 
-void Window::DrawFilledRect(const WindowPos &position, const WindowSize size, uint8_t R,
-                      uint8_t G, uint8_t B, uint8_t A) {
+void Window::DrawFilledRect(const WindowPos &position, const WindowSize size,
+                            uint8_t R, uint8_t G, uint8_t B, uint8_t A) {
   SDL_FRect rect = {position.x(), position.y(), size.x(), size.y()};
   SDL_SetRenderDrawColor(m_Renderer.get(), R, G, B, A);
   SDL_RenderFillRect(m_Renderer.get(), &rect);
 }
 
-void Window::DrawRect(const WindowPos &position, const WindowSize size, uint8_t R, uint8_t G, uint8_t B) {
+void Window::DrawRect(const WindowPos &position, const WindowSize size,
+                      uint8_t R, uint8_t G, uint8_t B) {
   SDL_FRect rect = {position.x(), position.y(), size.x(), size.y()};
   SDL_SetRenderDrawColor(m_Renderer.get(), R, G, B, 255);
   SDL_RenderRect(m_Renderer.get(), &rect);
@@ -105,7 +106,8 @@ void Window::ClearWindow() {
 void Window::Flush() { SDL_RenderPresent(m_Renderer.get()); }
 
 // TODO use some struct for color
-void Window::DrawCircle(const WindowPos &position, float radius, uint8_t R, uint8_t G, uint8_t B) {
+void Window::DrawCircle(const WindowPos &position, float radius, uint8_t R,
+                        uint8_t G, uint8_t B) {
   int cx = static_cast<int>(position.x());
   int cy = static_cast<int>(position.y());
   SDL_SetRenderDrawColor(m_Renderer.get(), R, G, B, 255);
@@ -117,9 +119,7 @@ void Window::DrawCircle(const WindowPos &position, float radius, uint8_t R, uint
   }
 }
 
-void Window::DrawLine(const WindowPos &A, const WindowPos &B)
-{
+void Window::DrawLine(const WindowPos &A, const WindowPos &B) {
   SDL_SetRenderDrawColor(m_Renderer.get(), 255, 0, 0, 255);
   SDL_RenderLine(m_Renderer.get(), A.x(), A.y(), B.x(), B.y());
 }
-

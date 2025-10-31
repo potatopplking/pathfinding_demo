@@ -10,16 +10,16 @@
 namespace pathfinder {
 namespace utils {
 
-struct QueueEntry
-{
-    float cost;
-    TilePos tile;
+struct QueueEntry {
+  float cost;
+  TilePos tile;
 
-    // min-heap -> smallest cost on top
-    bool operator>(const QueueEntry& o) const noexcept { return cost > o.cost; }
+  // min-heap -> smallest cost on top
+  bool operator>(const QueueEntry &o) const noexcept { return cost > o.cost; }
 };
 
-std::unique_ptr<pathfinder::PathFinderBase> create(pathfinder::PathFinderType type, const Map* map);
+std::unique_ptr<pathfinder::PathFinderBase>
+create(pathfinder::PathFinderType type, const Map *map);
 
-} // utils namespace
-} // pathfinding namespace
+} // namespace utils
+} // namespace pathfinder

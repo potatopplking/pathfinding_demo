@@ -49,6 +49,9 @@ else()
     set(SDL3_TARGET ${SDL3_LIBRARIES})
     set(SDL3_IMAGE_TARGET ${SDL3_image_LIBRARIES})
     set(GLEW_TARGET GLEW::GLEW)
+
+    # Enable clang-tidy
+    set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
 endif()
 
 # Include directories
@@ -185,7 +188,16 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Zi /DNDEBUG")
     set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /DNDEBUG")
 else()
-    # GCC/Clang flags
-    set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+    # GCC/Clang flags with extended debugging symbols
+    set(CMAKE_CXX_FLAGS_DEBUG "-ggdb3 -O0")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+    # Formatting target (clang only)
+    add_custom_target(format
+    COMMAND clang-format -i ${MAIN_SOURCES} ${HEADERS}
+)
 endif()
+
+
+list(TRANSFORM MAIN_SOURCES PREPEND "${CMAKE_SOURCE_DIR}/")
+list(TRANSFORM HEADERS PREPEND "${CMAKE_SOURCE_DIR}/")
+

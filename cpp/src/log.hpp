@@ -3,11 +3,11 @@
 #include <iostream>
 
 #if defined(__GNUC__) || defined(__clang__)
-#   define PRETTY_FUNC __PRETTY_FUNCTION__
+#define PRETTY_FUNC __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
-#   define PRETTY_FUNC __FUNCTION__
+#define PRETTY_FUNC __FUNCTION__
 #else
-#   define PRETTY_FUNC __func__
+#define PRETTY_FUNC __func__
 #endif
 
 #define LOG_CRITICAL(...) Log::critical(PRETTY_FUNC, ": ", __VA_ARGS__)

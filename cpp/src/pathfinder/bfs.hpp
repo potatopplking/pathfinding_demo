@@ -8,13 +8,13 @@
 #include "math.hpp"
 
 namespace pathfinder {
-  
-class BFS: public PathFinderBase {
+
+class BFS final : public PathFinderBase {
 
 public:
-  BFS(const Map* m): PathFinderBase(m) {}
+  BFS(const Map *m) : PathFinderBase(m) {}
   Path CalculatePath(WorldPos start, WorldPos end) override;
-  const std::string_view& GetName() const override { return m_Name; }
+  const std::string_view &GetName() const override { return m_Name; }
 
 private:
   const std::string_view m_Name = "Breadth First Search";
@@ -22,4 +22,4 @@ private:
   std::unordered_map<TilePos, TilePos, TilePosHash> m_CameFrom;
 };
 
-}
+} // namespace pathfinder

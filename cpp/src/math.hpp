@@ -4,12 +4,12 @@
 #include <cassert>
 #include <cmath>
 #include <concepts>
+#include <functional>
 #include <initializer_list>
 #include <iostream>
 #include <numeric>
 #include <ranges>
 #include <utility>
-#include <functional>
 
 #ifdef _WIN32
 #include <numbers>
@@ -37,6 +37,10 @@ static inline bool equalEpsilon(const T &a, const T &b) {
 struct Any {};
 
 template <typename T, size_t N, typename Tag = Any> class vec {
+
+  // Friend declaration for move constructor from different tag types
+  template <typename U, size_t M, typename OtherTag> friend class vec;
+
 public:
   vec() : m_Array{} {}
 
@@ -45,6 +49,9 @@ public:
   vec(ArgsT... args) : m_Array{args...} {}
 
   vec(std::array<T, N> array) : m_Array{array} {}
+
+  template <typename OtherTag>
+  vec(vec<T, N, OtherTag> &&other) : m_Array{std::move(other.m_Array)} {}
 
   //
   // Access to elements & data
@@ -69,20 +76,20 @@ public:
     return os;
   }
 
-  std::array<T,N>& Data() { return m_Array; }
+  std::array<T, N> &Data() { return m_Array; }
 
   //
   // binary operators
   //
 
   friend bool operator==(const vec &a, const vec &b)
-    requires (std::is_integral_v<T>)
+    requires(std::is_integral_v<T>)
   {
     return std::ranges::equal(a.m_Array, b.m_Array);
   }
 
   friend bool operator==(const vec &a, const vec &b)
-    requires (std::is_floating_point_v<T>)
+    requires(std::is_floating_point_v<T>)
   {
     for (const auto &[u, v] : std::views::zip(a.m_Array, b.m_Array)) {
       if (!equalEpsilon(u, v)) {
@@ -101,9 +108,23 @@ public:
     return c;
   }
 
+  friend vec operator+(const vec &a, T b) {
+    vec<T, N, Tag> c;
+    std::ranges::transform(a.m_Array, std::views::repeat(b), c.m_Array.begin(),
+                           std::plus{});
+    return c;
+  }
+
   friend vec operator-(const vec &a, const vec &b) {
     vec<T, N, Tag> c;
     std::ranges::transform(a.m_Array, b.m_Array, c.m_Array.begin(),
+                           std::minus{});
+    return c;
+  }
+
+  friend vec operator-(const vec &a, T b) {
+    vec<T, N, Tag> c;
+    std::ranges::transform(a.m_Array, std::views::repeat(b), c.m_Array.begin(),
                            std::minus{});
     return c;
   }
@@ -121,6 +142,13 @@ public:
     vec<T, N, Tag> c;
     std::ranges::transform(a.m_Array, std::views::repeat(scalar),
                            c.m_Array.begin(), std::divides{});
+    return c;
+  }
+
+  friend vec operator/(const vec &a, const vec &b) {
+    vec<T, N, Tag> c;
+    std::ranges::transform(a.m_Array, b.m_Array, c.m_Array.begin(),
+                           std::divides{});
     return c;
   }
 
@@ -142,12 +170,12 @@ public:
     return a;
   }
 
-  vec& operator/=(float scalar)
-  {
-    vec& a = *this;
+  vec &operator/=(float scalar) {
+    vec &a = *this;
     auto b = std::views::repeat(scalar);
     std::ranges::transform(a.m_Array, b, a.m_Array.begin(), std::divides{});
-    // TODO check all of this, could be done better with views instead of ranges?
+    // TODO check all of this, could be done better with views instead of
+    // ranges?
     return a;
   }
 
@@ -171,7 +199,6 @@ public:
     const vec &a = *this;
     return (a - b).LengthSquared();
   }
-
 
   //
   // In-place vector operations
@@ -206,16 +233,14 @@ public:
     return tmp;
   }
 
-  static T DotProduct(const vec& a, const vec& b)
-  {
-    return std::inner_product(
-        a.m_Array.begin(), a.m_Array.end(), b.m_Array.begin(), 
-        T{}, std::plus{}, std::multiplies{});
+  static T DotProduct(const vec &a, const vec &b) {
+    return std::inner_product(a.m_Array.begin(), a.m_Array.end(),
+                              b.m_Array.begin(), T{}, std::plus{},
+                              std::multiplies{});
   }
 
-  T DotProduct(const vec& b) const
-  {
-    const auto& a = *this;
+  T DotProduct(const vec &b) const {
+    const auto &a = *this;
     return DotProduct(a, b);
   }
 
@@ -259,10 +284,27 @@ public:
     return m_Array[2];
   }
 
-  template <typename TargetTag>
-  vec<T,N,TargetTag> ChangeTag()
+  template <typename TargetTag> vec<T, N, TargetTag> ChangeTag() const & {
+    return vec<T, N, TargetTag>(m_Array);
+  }
+
+  template <typename TargetTag> vec<T, N, TargetTag> ChangeTag() && {
+    return vec<T, N, TargetTag>(std::move(*this));
+  }
+
+  // Structured binding support for N == 2
+  template <size_t I>
+  const T &get() const
+    requires(N == 2 && I < 2)
   {
-    return vec<T,N,TargetTag>(m_Array);
+    return m_Array[I];
+  }
+
+  template <size_t I>
+  T &get()
+    requires(N == 2 && I < 2)
+  {
+    return m_Array[I];
   }
 
 private:
@@ -320,92 +362,101 @@ struct TilePosHash {
 //
 
 // Collumn major square matrix
-template <typename T, size_t N, typename Tag = Any>
-class Matrix {
+template <typename T, size_t N, typename Tag = Any> class Matrix {
 
-using vec_type = vec<T, N, Tag>;
+  using vec_type = vec<T, N, Tag>;
 
 public:
-    Matrix() = default;
+  Matrix() = default;
 
-    // Initialization using flat array of N*N elements
-    template <typename Tarr, size_t M>
-    requires (M == N*N && std::same_as<Tarr, T>)
-    Matrix(std::array<Tarr,M> array) : m_Array{}
-    {
-        std::size_t idx = 0;
-        for (auto col : array | std::views::chunk(N))
-        {
-            std::ranges::copy(col, m_Array[idx++].Data().begin());
-        }
+  // Initialization using flat array of N*N elements
+  template <typename Tarr, size_t M>
+    requires(M == N * N && std::same_as<Tarr, T>)
+  Matrix(std::array<Tarr, M> array) : m_Array{} {
+    std::size_t idx = 0;
+    for (auto col : array | std::views::chunk(N)) {
+      std::ranges::copy(col, m_Array[idx++].Data().begin());
     }
+  }
 
-    const vec_type& operator[](size_t index) const { return m_Array[index]; }
-    vec_type& operator[](size_t index) { return m_Array[index]; }
+  const vec_type &operator[](size_t index) const { return m_Array[index]; }
+  vec_type &operator[](size_t index) { return m_Array[index]; }
 
-    friend std::ostream &operator<<(std::ostream &os, const Matrix &obj)
-    {
-        os << "( ";
-        for (const auto &element : obj.m_Array) {
-        os << element << " ";
-        }
-        os << ")";
-        return os;
+  friend std::ostream &operator<<(std::ostream &os, const Matrix &obj) {
+    os << "( ";
+    for (const auto &element : obj.m_Array) {
+      os << element << " ";
     }
+    os << ")";
+    return os;
+  }
 
+  friend Matrix operator+(const Matrix &A, const Matrix &B) {
+    Matrix C;
+    std::ranges::transform(A.m_Array, B.m_Array, C.m_Array.begin(),
+                           std::plus{});
+    return C;
+  }
 
-    friend Matrix operator+(const Matrix& A, const Matrix& B)
-    {
-        Matrix C;
-        std::ranges::transform(A.m_Array, B.m_Array, C.m_Array.begin(), std::plus{});
-        return C;
+  friend Matrix operator-(const Matrix &A, const Matrix &B) {
+    Matrix C;
+    std::ranges::transform(A.m_Array, B.m_Array, C.m_Array.begin(),
+                           std::minus{});
+    return C;
+  }
+
+  friend Matrix operator*(const Matrix &A, const Matrix &B) {
+    Matrix C;
+
+    for (size_t i = 0; i < N; i++) {
+      for (size_t j = 0; j < N; j++) {
+        T sum = 0;
+        for (size_t k = 0; k < N; ++k)
+          sum += A[i][k] * B[k][j];
+        C[i][j] = sum;
+      }
     }
+    return C;
+  }
 
-    friend Matrix operator-(const Matrix& A, const Matrix& B)
-    {
-        Matrix C;
-        std::ranges::transform(A.m_Array, B.m_Array, C.m_Array.begin(), std::minus{});
-        return C;
+  friend vec_type operator*(const Matrix &A, const vec_type &b) {
+    // we assume that b is row vector
+    vec_type c;
+    for (size_t i = 0; i < N; i++) {
+      c[i] = b.DotProduct(A[i]);
     }
+    return c;
+  }
 
-    friend Matrix operator*(const Matrix& A, const Matrix& B)
-    {
-        Matrix C;
-
-        for (size_t i = 0; i < N; i++)
-        {
-            for (size_t j = 0; j < N; j++)
-            {
-                T sum = 0;
-                for (size_t k = 0; k < N; ++k) sum += A[i][k] * B[k][j];
-                C[i][j] = sum;
-            }
-        }
-        return C;
+  static constexpr Matrix Eye() {
+    Matrix E;
+    for (size_t i = 0; i < N; i++) {
+      E[i][i] = T{1};
     }
-
-    friend vec_type operator*(const Matrix& A, const vec_type& b)
-    {
-        // we assume that b is row vector
-        vec_type c;
-        for (size_t i = 0; i < N; i++)
-        {
-            c[i] = b.DotProduct(A[i]);
-        }
-        return c;
-    }
-
-    static constexpr Matrix Eye()
-    {
-        Matrix E;
-        for (size_t i = 0; i < N; i++)
-        {
-            E[i][i] = T{1};
-        }
-        return E;
-    }
-
+    return E;
+  }
 
 private:
-    std::array<vec_type, N> m_Array;
+  std::array<vec_type, N> m_Array;
 };
+
+// Structured binding support for vec<T, 2, Tag>
+namespace std {
+template <typename T, typename Tag>
+struct tuple_size<vec<T, 2, Tag>> : integral_constant<size_t, 2> {};
+
+template <size_t I, typename T, typename Tag>
+struct tuple_element<I, vec<T, 2, Tag>> {
+  using type = T;
+};
+} // namespace std
+
+// ADL-based get for structured bindings
+template <size_t I, typename T, typename Tag>
+const T &get(const vec<T, 2, Tag> &v) {
+  return v.template get<I>();
+}
+
+template <size_t I, typename T, typename Tag> T &get(vec<T, 2, Tag> &v) {
+  return v.template get<I>();
+}

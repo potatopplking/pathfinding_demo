@@ -7,14 +7,12 @@
 #include "log.hpp"
 #include "math.hpp"
 
-// Seems like SDL doesn't have named constants for mouse button 
+// Seems like SDL doesn't have named constants for mouse button
 enum class MouseButton { LEFT = 1, MIDDLE, RIGHT };
 
 class UserAction {
 public:
-
-  enum class Type
-  {
+  enum class Type {
     NONE,
     EXIT,
     SET_MOVE_TARGET,
@@ -44,7 +42,7 @@ public:
   } Argument;
 
   // TODO use std::variant
-  //std::variant<WindowPos, char, int> Argument;
+  // std::variant<WindowPos, char, int> Argument;
 };
 
 class UserInput {
@@ -65,6 +63,6 @@ private:
   std::vector<UserAction> m_Actions;
   bool m_SelectionActive = false;
 
-  void GetActions_keyboard(const SDL_Event&);
-  void GetActions_mouse(const SDL_Event&);
+  void GetActions_keyboard(const SDL_Event &);
+  void GetActions_mouse(const SDL_Event &);
 };
