@@ -10,7 +10,7 @@
 
 namespace pathfinder {
 
-class GBFS : public PathFinderBase {
+class GBFS final : public PathFinderBase {
 
 public:
   GBFS(const Map *m) : PathFinderBase(m) {}

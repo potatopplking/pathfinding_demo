@@ -22,7 +22,7 @@ enum class PathFinderType {
 class PathFinderBase {
 public:
   PathFinderBase(const Map *m);
-  ~PathFinderBase() = default;
+  virtual ~PathFinderBase() = default;
 
   PathFinderBase(const PathFinderBase &) = delete;
   PathFinderBase(PathFinderBase &&) = delete;
@@ -36,7 +36,7 @@ protected:
   const Map *m_Map;
 };
 
-class LinearPathFinder : public PathFinderBase {
+class LinearPathFinder final : public PathFinderBase {
 
 public:
   LinearPathFinder(const Map *m) : PathFinderBase(m) {}

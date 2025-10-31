@@ -102,7 +102,9 @@ void Map::PaintLine(TilePos start_tile, TilePos stop_tile, double width,
   const vec<double, 2> ortho = step.GetOrthogonal();
   LOG_DEBUG("step = ", step, " ortho = ", ortho);
 
+  // NOLINTNEXTLINE(clang-analyzer-security.FloatLoopCounter)
   for (double t = 0; t < line_length; t += 1.0) {
+    // NOLINTNEXTLINE(clang-analyzer-security.FloatLoopCounter)
     for (double ortho_t = 0; ortho_t < width; ortho_t += 0.1) {
       auto tile_pos = start + step * t + ortho * ortho_t;
       TilePos tile_pos_int{static_cast<int32_t>(tile_pos.x()),

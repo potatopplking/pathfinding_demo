@@ -10,7 +10,7 @@
 
 namespace pathfinder {
 
-class Dijkstra : public PathFinderBase {
+class Dijkstra final : public PathFinderBase {
 
 public:
   Dijkstra(const Map *m) : PathFinderBase(m) {}

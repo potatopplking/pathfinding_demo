@@ -9,7 +9,7 @@
 
 namespace pathfinder {
 
-class BFS : public PathFinderBase {
+class BFS final : public PathFinderBase {
 
 public:
   BFS(const Map *m) : PathFinderBase(m) {}
