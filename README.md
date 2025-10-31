@@ -2,8 +2,6 @@
 
 ![C++ pathfinding demo](./docs/img/screenshot_1.png)
 
-**Work in progress**
-
 This is a demo of pathfinding on a 2D grid. It consists of 2 main parts:
 
 * python notes and implementation
@@ -52,12 +50,20 @@ TODO
 * SDL3
 * SDL3-image
 * GLEW
+* gtest
 
 e.g. on Archlinux:
 
 ```
-pacman -S glew sdl3 sdl3_image
+pacman -S glew sdl3 sdl3_image gtest
 ```
+
+Optional dependencies for generating class and include diagrams:
+
+* plantuml
+* [clang-uml](https://github.com/bkryza/clang-uml)
+
+clang-uml needs to be either installed from [AUR](https://aur.archlinux.org/packages/clang-uml) or built manually 
 
 #### Build
 
@@ -68,12 +74,22 @@ cmake --build build -j 16
 
 Optionally you can also use options:
 
-* `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON` to enable compile database export
+* `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON` to enable compile database export (needed for class diagram generation)
 * `-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++` to use clang
 
 ```
 cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=O  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-``````
+```
 
 Run the `pathfinding` binary in the `build` folder.
 
+#### Generate architecture diagrams
+
+Build with `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON`. Then in the root folder run:
+
+```
+clang-uml
+plantuml -tsvg docs/diagrams/*.puml
+```
+
+The resulting svg files are located in [docs/diagrams/](./docs/diagrams/). 
