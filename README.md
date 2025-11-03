@@ -11,6 +11,8 @@ This is a demo of pathfinding on a 2D grid. It consists of 2 main parts:
 
 ## Python
 
+![Python pathfinding demo](./docs/img/py_screenshot.png)
+
 ### Standalone script
 
 Run `python pathfinding_demo.py`. Requires numpy and matplotlib to be installed.
@@ -28,7 +30,7 @@ Contains the same demo as the standalone script and some notes. Since Github sup
 * `vcpkg` needs to be installed and `VCPKG_ROOT` set. See the [installation instructions](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started?pivots=shell-powershell).
 * Visual Studio with Desktop development with C++ workload (or MSVC Build Tools)
 
-#### Build - option 1: CLI
+#### Build
 
 Run "Developer Command Prompt for VS 20xx":
 
@@ -38,10 +40,6 @@ cmake --build build
 ```
 
 Run the `pathfinding.exe` binary in the `build` folder.
-
-#### Build - option 2: Visual Studio
-
-TODO
 
 ### Linux
 
