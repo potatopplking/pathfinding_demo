@@ -2,7 +2,7 @@
 
 This is a demo of pathfinding on a 2D grid. It consists of 2 main parts:
 
-* python notes and implementation
+* Notes and Python implementation
     * jupyter notebook file: [`python/pathfinding_demo.ipynb`](./python/pathfinding_demo.ipynb)
     * standalone python script: [`./python/pathfinding_demo.py`](./python/pathfinding_demo.py)
 * C++ interactive demo: [`cpp`](./cpp/)
