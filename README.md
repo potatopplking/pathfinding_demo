@@ -1,7 +1,5 @@
 # Pathfinding demo
 
-![C++ pathfinding demo](./docs/img/screenshot_1.png)
-
 This is a demo of pathfinding on a 2D grid. It consists of 2 main parts:
 
 * python notes and implementation
@@ -22,6 +20,8 @@ Run `python pathfinding_demo.py`. Requires numpy and matplotlib to be installed.
 Contains the same demo as the standalone script and some notes. Since Github supports Jupyter Notebooks now, you can go [directly to the file](./python/pathfinding_demo.ipynb).
 
 ## C++
+
+![C++ pathfinding demo](./docs/img/screenshot_1.png)
 
 ### Windows
 
