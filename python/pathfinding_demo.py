@@ -56,7 +56,8 @@ class Map:
         x_center, y_center = center_point
         for x in range(-1,2):
             for y in range(-1,2):
-                if x == 0 and y == 0:
+                diagonal = x == y # includes center 0,0
+                if diagonal:
                     continue
                 p = Point2D((x + x_center, y + y_center))
                 if self.IsPointValid(p):
@@ -304,10 +305,6 @@ class GBFS(PathFinderBase):
 
     @staticmethod
     def heuristic(a: Point2D, b: Point2D) -> float:
-        # for now we use Manhattan distance, although
-        # it is probably not entirely correct, given that
-        # we can also move diagonally in the grid
-        # TODO a problem for future me
         x_a, y_a = a
         x_b, y_b = b
         return abs(x_a - x_b) + abs(y_a - y_b)
@@ -348,10 +345,6 @@ class A_star(PathFinderBase):
 
     @staticmethod
     def heuristic(a: Point2D, b: Point2D) -> float:
-        # for now we use Manhattan distance, although
-        # it is probably not entirely correct, given that
-        # we can also move diagonally in the grid
-        # TODO a problem for future me
         x_a, y_a = a
         x_b, y_b = b
         return abs(x_a - x_b) + abs(y_a - y_b)
