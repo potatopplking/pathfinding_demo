@@ -4,7 +4,7 @@
 #include <stack>
 #include <stdexcept>
 
-namespace array { // TODO rename to container or something
+namespace array {
 
 template <typename U>
 concept Deletable = requires(U u) {
@@ -148,7 +148,6 @@ public:
 
 private:
   pair_t *m_Pool = nullptr;
-  // TODO use unique_ptr
   std::stack<size_t> m_FreeIdx;
 
   size_t m_Capacity = 0;

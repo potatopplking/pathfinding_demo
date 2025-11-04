@@ -110,7 +110,7 @@ void Window::DrawCircle(const WindowPos &position, float radius, uint8_t R,
   int cy = static_cast<int>(position.y());
   SDL_SetRenderDrawColor(m_Renderer.get(), R, G, B, 255);
   for (int i = 0; i < 360; ++i) {
-    double a = i * M_PI / 180.0;
+    double a = i * std::numbers::pi / 180.0;
     SDL_RenderPoint(m_Renderer.get(),
                     cx + static_cast<int>(std::round(radius * std::cos(a))),
                     cy + static_cast<int>(std::round(radius * std::sin(a))));

@@ -23,7 +23,6 @@ PathFindingDemo::PathFindingDemo(int width, int height) : m_Map(width, height) {
 PathFindingDemo::~PathFindingDemo() { LOG_DEBUG("."); }
 
 void PathFindingDemo::AddEntity(std::shared_ptr<Entity> e) {
-  // TODO emplace_back
   m_Entities.push_back(e);
 }
 
@@ -71,11 +70,6 @@ void PathFindingDemo::CreateMap() {
       AddEntity(p);
     }
   }
-
-  // select everything - TODO this is just temporary for testing
-  for (const auto &entity : m_Entities) {
-    m_SelectedEntities.push_back(entity);
-  }
 }
 
 WorldPos PathFindingDemo::GetRandomPosition() const {
@@ -121,8 +115,6 @@ void PathFindingDemo::UpdateWorld() {
     entity->SetActualVelocity(velocity * tile_velocity_coeff);
 
     for (const auto &collision : GetEntityCollisions()) {
-      // TODO this loop is quite "hot", is it good idea to use weak_ptr and
-      // promote it?
       auto weak_A = std::get<0>(collision);
       auto weak_B = std::get<1>(collision);
       auto A = weak_A.lock();
@@ -136,8 +128,6 @@ void PathFindingDemo::UpdateWorld() {
       // LOG_DEBUG("Collision: A is ", A, ", B is ", B);
       auto AB = B->GetPosition() - A->GetPosition();
       A->ZeroActualVelocityInDirection(AB);
-      // handle logic
-      // TODO
     }
 
     // update the position
@@ -211,7 +201,6 @@ void PathFindingDemo::DeselectEntities() {
 
 void PathFindingDemo::SelectEntitiesInRectangle(WorldPos A, WorldPos B) {
   DeselectEntities();
-  // TODO use colliders for this
   auto [x_min, x_max] = std::minmax(A.x(), B.x());
   auto [y_min, y_max] = std::minmax(A.y(), B.y());
   for (const auto &entity : m_Entities) {

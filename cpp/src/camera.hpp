@@ -28,7 +28,6 @@ public:
   }
 
 private:
-  // TODO this should be replaced with a matrix
   float m_Zoom = 1.0f;
   WorldPos m_Pan;
 };

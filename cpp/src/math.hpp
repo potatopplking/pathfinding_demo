@@ -7,15 +7,10 @@
 #include <functional>
 #include <initializer_list>
 #include <iostream>
+#include <numbers>
 #include <numeric>
 #include <ranges>
 #include <utility>
-
-#ifdef _WIN32
-#include <numbers>
-#define M_PI std::numbers::pi
-// TODO use std::numbers::pi instead of M_PI
-#endif
 
 template <typename T>
   requires std::floating_point<T>
@@ -174,8 +169,6 @@ public:
     vec &a = *this;
     auto b = std::views::repeat(scalar);
     std::ranges::transform(a.m_Array, b, a.m_Array.begin(), std::divides{});
-    // TODO check all of this, could be done better with views instead of
-    // ranges?
     return a;
   }
 

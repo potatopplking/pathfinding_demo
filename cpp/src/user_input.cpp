@@ -117,8 +117,7 @@ const std::vector<UserAction> &UserInput::GetActions() {
     } else if (mouse_events.contains(event.type)) {
       GetActions_mouse(event);
     } else {
-      // TODO uncomment, for now too much noise
-      // LOG_WARNING("Action not processed");
+      LOG_WARNING("Action not processed");
     }
   }
   return m_Actions;

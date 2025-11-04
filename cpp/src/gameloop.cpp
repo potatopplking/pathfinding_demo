@@ -63,16 +63,12 @@ void GameLoop::Draw() {
   }
 }
 
-// TODO rethink coupling and dependencies in the game loop class
-
 void GameLoop::Run() {
   LOG_INFO("Running the game");
   while (!m_Game->IsExitRequested()) {
     m_Game->HandleActions(m_UserInput->GetActions());
     m_Game->UpdateWorld();
 
-    // TODO measure fps, draw only if delay for target fps was reached
-    // or create a separate thread for drawing
     m_Window->ClearWindow();
     Draw();
     m_Window->Flush();
