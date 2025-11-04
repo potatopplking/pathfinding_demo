@@ -62,14 +62,6 @@ void PathFindingDemo::CreateMap() {
   auto player2 = std::make_shared<Player>();
   player2->SetPosition(m_Map.TileToWorld(TilePos{50, 20}));
   AddEntity(player2);
-
-  for (int i = 0; i < 1; i++) {
-    for (int j = 0; j < 10; j++) {
-      auto p = std::make_shared<Player>();
-      p->SetPosition(m_Map.TileToWorld(TilePos{10 + 5 * i, 40 + 5 * j}));
-      AddEntity(p);
-    }
-  }
 }
 
 WorldPos PathFindingDemo::GetRandomPosition() const {
