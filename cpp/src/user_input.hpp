@@ -24,25 +24,17 @@ public:
     SELECTION_END
   };
 
-  UserAction() : type(Type::NONE), Argument{.number = 0} {}
-  UserAction(Type t) : type(t), Argument{.number = 0} {}
-  UserAction(Type t, char key) : type(t), Argument{.key = key} {}
-  UserAction(Type t, WindowPos v) : type(t), Argument{.position = v} {}
-  UserAction(Type t, int32_t arg) : type(t), Argument{.number = arg} {}
-  UserAction(Type t, float arg) : type(t), Argument{.float_number = arg} {}
+  UserAction() : type(Type::NONE), Argument{0} {}
+  UserAction(Type t) : type(t), Argument{0} {}
+  UserAction(Type t, char key) : type(t), Argument{key} {}
+  UserAction(Type t, WindowPos v) : type(t), Argument{v} {}
+  UserAction(Type t, int32_t arg) : type(t), Argument{arg} {}
+  UserAction(Type t, float arg) : type(t), Argument{arg} {}
   ~UserAction() = default;
 
   Type type;
 
-  union {
-    WindowPos position;
-    char key;
-    int32_t number;
-    float float_number;
-  } Argument;
-
-  // TODO use std::variant
-  // std::variant<WindowPos, char, int> Argument;
+  std::variant<WindowPos, char, int32_t, float> Argument;
 };
 
 class UserInput {

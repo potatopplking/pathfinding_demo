@@ -151,7 +151,8 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions) {
       LOG_INFO("Exit requested");
       m_ExitRequested = true;
     } else if (action.type == UserAction::Type::SET_MOVE_TARGET) {
-      WorldPos target_pos = m_Camera.WindowToWorld(action.Argument.position);
+      WorldPos target_pos =
+          m_Camera.WindowToWorld(std::get<WindowPos>(action.Argument));
       for (auto &selected_entity : m_SelectedEntities) {
         LOG_INFO("Calculating path to target: ", target_pos);
         if (auto sp = selected_entity.lock()) {
@@ -166,23 +167,24 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions) {
       }
     } else if (action.type == UserAction::Type::SELECT_PATHFINDER) {
       using namespace pathfinder;
-      PathFinderType type = static_cast<PathFinderType>(action.Argument.number);
+      PathFinderType type =
+          static_cast<PathFinderType>(std::get<int32_t>(action.Argument));
       m_PathFinder = pathfinder::utils::create(type, (const Map *)&m_Map);
       LOG_INFO("Switched to path finding method: ", m_PathFinder->GetName());
     } else if (action.type == UserAction::Type::CAMERA_PAN) {
-      const auto &window_pan = action.Argument.position;
+      const auto &window_pan = std::get<WindowPos>(action.Argument);
       WorldPos world_pan{window_pan.x(), window_pan.y()};
       m_Camera.Pan(world_pan);
       LOG_INFO("Camera pan delta: ", world_pan);
     } else if (action.type == UserAction::Type::CAMERA_ZOOM) {
-      m_Camera.Zoom(action.Argument.float_number);
-      LOG_INFO("Camera zoom: ", action.Argument.float_number);
+      m_Camera.Zoom(std::get<float>(action.Argument));
+      LOG_INFO("Camera zoom: ", std::get<float>(action.Argument));
     } else if (action.type == UserAction::Type::SELECTION_START) {
       m_SelectionBox.active = true;
-      m_SelectionBox.start = action.Argument.position;
-      m_SelectionBox.end = action.Argument.position;
+      m_SelectionBox.start = std::get<WindowPos>(action.Argument);
+      m_SelectionBox.end = std::get<WindowPos>(action.Argument);
     } else if (action.type == UserAction::Type::SELECTION_END) {
-      m_SelectionBox.end = action.Argument.position;
+      m_SelectionBox.end = std::get<WindowPos>(action.Argument);
       m_SelectionBox.active = false;
       auto diff = m_SelectionBox.end - m_SelectionBox.start;
       // here we explicitly change the vector type from WindowPos to WindowSize
@@ -191,7 +193,7 @@ void PathFindingDemo::HandleActions(const std::vector<UserAction> &actions) {
       WorldPos end = m_Camera.WindowToWorld(m_SelectionBox.end);
       SelectEntitiesInRectangle(start, end);
     } else if (action.type == UserAction::Type::SELECTION_CHANGE) {
-      m_SelectionBox.end = action.Argument.position;
+      m_SelectionBox.end = std::get<WindowPos>(action.Argument);
       auto diff = m_SelectionBox.end - m_SelectionBox.start;
       m_SelectionBox.size = diff.ChangeTag<WindowSizeTag>();
     }

@@ -62,7 +62,6 @@ std::expected<void, std::string> Window::Init() {
   // Set renderer to the Sprite class
   Sprite::SetRenderer(m_Renderer);
 
-  // TODO this needs to be tied to map size
   SDL_SetRenderScale(m_Renderer.get(), 1.0f, 1.0f);
 
   return {};
@@ -105,7 +104,6 @@ void Window::ClearWindow() {
 
 void Window::Flush() { SDL_RenderPresent(m_Renderer.get()); }
 
-// TODO use some struct for color
 void Window::DrawCircle(const WindowPos &position, float radius, uint8_t R,
                         uint8_t G, uint8_t B) {
   int cx = static_cast<int>(position.x());
